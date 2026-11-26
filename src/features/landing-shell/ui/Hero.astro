@@ -2,34 +2,70 @@
 /**
  * ============================================================================
  * QUÉ HACE:
- * Portada principal (Hero) de GoManía SpA diseñada mobile-first:
- * - Móvil (< 1024px): bloque de texto y CTA arriba; espacio multimedia abajo.
- * - Escritorio (>= 1024px): 2 columnas — texto grande + lema "Más de 100
- *   sabores" + CTA "Explorar catálogo" a la izquierda; contenedor reservado
- *   para foto o video a la derecha.
- * - Implementa estados Vacío (marco decorativo placeholder listo para editar)
- *   y Error (fallback automático si falla la carga de tu futura foto o video).
+ * Portada principal (Hero) de GoManía SpA a pantalla completa (`100dvw` x
+ * `100dvh`):
+ * - Fondo preparado para reproducir un video en bucle a pantalla completa
+ *   (`public/videos/hero-bg.mp4`) cubierto por una capa blanca translúcida
+ *   (`--hero-overlay-color`) que suaviza el fondo y garantiza lectura perfecta.
+ * - Si aún no has subido el video de fondo, el script oculta la etiqueta
+ *   `<video>` sin mostrar errores y deja el fondo rosado suave de respaldo.
+ * - Diseño mobile-first; en escritorio (`>= 1024px`) muestra titular + lema +
+ *   CTA a la izquierda y marco multimedia a la derecha.
  *
  * QUÉ PUEDES EDITAR AQUÍ:
- * - Para activar una FOTO o VIDEO real en el lado derecho del Hero, busca el
- *   comentario `=== SLOT RESERVADO PARA FOTO O VIDEO DEL HERO ===` más abajo
- *   y descomenta la opción que prefieras (imagen o video).
- * - Los textos principales leen `BRAND_CONFIG` y `BUSINESS_RULES` desde
- *   `src/shared/config.ts`.
+ * - VIDEO DE FONDO: guarda tu video en `public/videos/hero-bg.mp4` (o cambia
+ *   la ruta en el bloque `=== VIDEO DE FONDO DEL HERO (100dvw x 100dvh) ===`).
+ * - CAPA BLANCA TRANSLÚCIDA: ajusta `--hero-overlay-color` (opacidad del
+ *   blanco, por defecto `0.72`) y `--hero-overlay-blur` (desenfoque suave,
+ *   por defecto `2px`) al inicio del bloque `<style>`.
+ * - SLOT DERECHO: opcionalmente agrega una foto/video destacado en el bloque
+ *   `=== SLOT RESERVADO PARA FOTO O VIDEO DEL HERO ===`.
  *
  * CON QUÉ MÓDULO CONECTA:
  * - Lee `BRAND_CONFIG` y `BUSINESS_RULES` desde `src/shared/config.ts`.
- * - Enlaza directamente con las secciones `#catalogo` y `#armador-mix`.
+ * - Enlaza directamente con las secciones `#catalogo` y `#quienes-somos`.
  * ============================================================================
  */
 import { BRAND_CONFIG, BUSINESS_RULES } from '../../../shared/config';
 ---
 
 <div class="gm-hero" data-landing-hero>
+  <!-- ========================================================================
+       CAPA 0: VIDEO DE FONDO A PANTALLA COMPLETA (100dvw x 100dvh)
+       INSTRUCCIÓN PARA ACTIVAR TU VIDEO DE FONDO:
+       1. Guarda tu video MP4 liviano en: `public/videos/hero-bg.mp4`
+          (recomendado: < 6 MB, sin audio, resolución 1280x720 o 1920x1080).
+       2. Si quieres mostrar una imagen fija mientras carga el video, agrega
+          el atributo `poster="/images/hero/hero-bg-poster.webp"`.
+       3. Si el archivo todavía no existe, se oculta automáticamente y queda
+          el fondo de respaldo con la capa translúcida blanca encima.
+       ======================================================================== -->
+  <div class="gm-hero__bg-media" aria-hidden="true">
+    <video
+      class="gm-hero__bg-video"
+      autoplay
+      muted
+      loop
+      playsinline
+      preload="metadata"
+      data-hero-bg-video
+    >
+      <source src="/videos/hero-bg.mp4" type="video/mp4" />
+    </video>
+  </div>
+
+  <!-- ========================================================================
+       CAPA 1: CAPA TRANSLÚCIDA BLANCA ENCIMA DEL VIDEO DE FONDO
+       Edita su opacidad y desenfoque en `--hero-overlay-color` y
+       `--hero-overlay-blur` dentro de `<style>`.
+       ======================================================================== -->
+  <div class="gm-hero__bg-overlay" aria-hidden="true"></div>
+
+  <!-- ========================================================================
+       CAPA 2: CONTENIDO PRINCIPAL DEL HERO (POR ENCIMA DEL VIDEO Y LA CAPA)
+       ======================================================================== -->
   <div class="gm-container gm-hero__grid">
-    <!-- ======================================================================
-         COLUMNA IZQUIERDA (ARRIBA EN MÓVIL): TITULAR, LEMA Y CTA
-         ====================================================================== -->
+    <!-- COLUMNA IZQUIERDA (ARRIBA EN MÓVIL): TITULAR, LEMA Y CTA -->
     <div class="gm-hero__content">
       <span class="gm-hero__eyebrow">
         <span class="gm-hero__dot" aria-hidden="true"></span>
@@ -77,95 +113,64 @@ import { BRAND_CONFIG, BUSINESS_RULES } from '../../../shared/config';
       </ul>
     </div>
 
-    <!-- ======================================================================
-         COLUMNA DERECHA (ABAJO EN MÓVIL): SLOT RESERVADO PARA FOTO O VIDEO
-         ====================================================================== -->
+    <!-- COLUMNA DERECHA (ABAJO EN MÓVIL): SLOT RESERVADO PARA FOTO O VIDEO -->
     <div class="gm-hero__media-wrap">
       <div class="gm-hero__media-frame" data-hero-media-frame>
-        <!-- ==================================================================
-             === SLOT RESERVADO PARA FOTO O VIDEO DEL HERO ===
-             Cuando tengas tu foto o video definitivo:
-             1. Guárdalo en `public/images/hero/` (ej. `hero-gomania.webp` o
-                `hero-gomania.mp4`).
-             2. Descomenta UNA de las dos opciones siguientes y agrega la clase
-                `is-hidden` al bloque `data-hero-fallback` (si falla la carga
-                en producción, el script mostrará el fallback automáticamente).
+        <!-- Aquí empieza el modelo 3d envase gomanía -->
 
-             OPCIÓN A — FOTO:
-             <img
-               src="/images/hero/hero-gomania.webp"
-               alt="Bolsas y gomitas de GoManía SpA"
-               class="gm-hero__media-asset"
-               width="640"
-               height="520"
-               decoding="async"
-               data-hero-media
-             />
+          <div slot="fallback" class="gm-hero__fallback" data-hero-fallback>
+            <div class="gm-hero__fallback" data-hero-fallback>
+            <div class="gm-hero__fallback-badge">Espacio listo para foto o video</div>
 
-             OPCIÓN B — VIDEO CORTO EN BUCLE (SILENCIADO):
-             <video
-               src="/images/hero/hero-gomania.mp4"
-               poster="/images/hero/hero-poster.webp"
-               class="gm-hero__media-asset"
-               autoplay
-               muted
-               loop
-               playsinline
-               data-hero-media
-             ></video>
-             ================================================================== -->
+            <!-- Ilustración decorativa a color estilo GoManía (nunca B/N) -->
+            <svg
+              class="gm-hero__fallback-art"
+              viewBox="0 0 320 220"
+              fill="none"
+              xmlns="http://www.w3.org/2000/svg"
+              role="img"
+              aria-label="Ilustración decorativa de bolsas y sabores GoManía SpA"
+            >
+              <rect x="16" y="16" width="288" height="188" rx="28" fill="#FFFFFF" fill-opacity="0.92" />
+              <circle cx="72" cy="70" r="28" fill="#FFE5EC" />
+              <circle cx="248" cy="152" r="34" fill="#E6F7FE" />
+              <!-- Bolsa Doypack estilizada a color -->
+              <rect x="108" y="34" width="104" height="148" rx="18" fill="#F44870" />
+              <rect x="118" y="46" width="84" height="10" rx="5" fill="#FFFFFF" fill-opacity="0.35" />
+              <!-- Ventana central transparente simulada -->
+              <rect x="122" y="84" width="76" height="64" rx="14" fill="#FFF2F5" stroke="#FFFFFF" stroke-width="3" />
+              <!-- Gomitas y maníes de colores dentro de la ventana -->
+              <circle cx="144" cy="112" r="11" fill="#28AAE1" />
+              <circle cx="164" cy="122" r="12" fill="#F44870" />
+              <circle cx="178" cy="106" r="10" fill="#C89D70" />
+              <circle cx="152" cy="130" r="8" fill="#15803D" />
+              <!-- Sello G&M en esquina superior izquierda -->
+              <circle cx="130" cy="68" r="13" fill="#28AAE1" stroke="#FFFFFF" stroke-width="2" />
+              <text
+                x="130"
+                y="72"
+                text-anchor="middle"
+                font-family="Fredoka, sans-serif"
+                font-weight="700"
+                font-size="9"
+                fill="#FFFFFF"
+              >G&amp;M</text>
+              <text
+                x="160"
+                y="170"
+                text-anchor="middle"
+                font-family="Fredoka, sans-serif"
+                font-weight="700"
+                font-size="13"
+                fill="#FFFFFF"
+              >GoManía</text>
+            </svg>
 
-        <!-- ESTADO VACÍO / FALLBACK AUTOMÁTICO CON IDENTIDAD A COLOR -->
-        <div class="gm-hero__fallback" data-hero-fallback>
-          <div class="gm-hero__fallback-badge">Espacio listo para foto o video</div>
-
-          <!-- Ilustración decorativa a color estilo GoManía (nunca B/N) -->
-          <svg
-            class="gm-hero__fallback-art"
-            viewBox="0 0 320 220"
-            fill="none"
-            xmlns="http://www.w3.org/2000/svg"
-            role="img"
-            aria-label="Ilustración decorativa de bolsas y sabores GoManía SpA"
-          >
-            <rect x="16" y="16" width="288" height="188" rx="28" fill="#FFFFFF" fill-opacity="0.92" />
-            <circle cx="72" cy="70" r="28" fill="#FFE5EC" />
-            <circle cx="248" cy="152" r="34" fill="#E6F7FE" />
-            <!-- Bolsa Doypack estilizada a color -->
-            <rect x="108" y="34" width="104" height="148" rx="18" fill="#F44870" />
-            <rect x="118" y="46" width="84" height="10" rx="5" fill="#FFFFFF" fill-opacity="0.35" />
-            <!-- Ventana central transparente simulada -->
-            <rect x="122" y="84" width="76" height="64" rx="14" fill="#FFF2F5" stroke="#FFFFFF" stroke-width="3" />
-            <!-- Gomitas y maníes de colores dentro de la ventana -->
-            <circle cx="144" cy="112" r="11" fill="#28AAE1" />
-            <circle cx="164" cy="122" r="12" fill="#F44870" />
-            <circle cx="178" cy="106" r="10" fill="#C89D70" />
-            <circle cx="152" cy="130" r="8" fill="#15803D" />
-            <!-- Sello G&M en esquina superior izquierda -->
-            <circle cx="130" cy="68" r="13" fill="#28AAE1" stroke="#FFFFFF" stroke-width="2" />
-            <text
-              x="130"
-              y="72"
-              text-anchor="middle"
-              font-family="Fredoka, sans-serif"
-              font-weight="700"
-              font-size="9"
-              fill="#FFFFFF"
-            >G&amp;M</text>
-            <text
-              x="160"
-              y="170"
-              text-anchor="middle"
-              font-family="Fredoka, sans-serif"
-              font-weight="700"
-              font-size="13"
-              fill="#FFFFFF"
-            >GoManía</text>
-          </svg>
-
-          <p class="gm-hero__fallback-caption">
-            {BRAND_CONFIG.shortName} · {BRAND_CONFIG.tagline}
-          </p>
+            <p class="gm-hero__fallback-caption">
+              {BRAND_CONFIG.shortName} · {BRAND_CONFIG.tagline}
+            </p>
+          </div>
+        <!-- Aquí termina el modelo 3d envase gomanía -->
         </div>
       </div>
     </div>
@@ -174,14 +179,33 @@ import { BRAND_CONFIG, BUSINESS_RULES } from '../../../shared/config';
 
 <script>
   /**
-   * Estado de error del Hero:
-   * Si en el futuro insertas una foto (`<img>`) o video (`<video>`) con el
-   * atributo `data-hero-media` y falla su carga en producción, oculta el medio
-   * roto y activa automáticamente el banner ilustrado con la marca a color.
+   * Manejo seguro de medios del Hero:
+   * 1) Video de fondo (`data-hero-bg-video`): si todavía no subes
+   *    `public/videos/hero-bg.mp4` o falla su carga, lo oculta limpiamente
+   *    manteniendo el fondo de respaldo con la capa translúcida blanca.
+   * 2) Tarjeta derecha (`data-hero-media`): activa fallback si falla la carga.
    */
   const heroRoot = document.querySelector<HTMLElement>('[data-landing-hero]');
 
   if (heroRoot) {
+    // --- 1. Video de fondo full-bleed (100dvw x 100dvh) ---
+    const bgVideo = heroRoot.querySelector<HTMLVideoElement>('[data-hero-bg-video]');
+    const bgSource = bgVideo?.querySelector<HTMLSourceElement>('source');
+
+    if (bgVideo) {
+      const hideBgVideo = (): void => {
+        bgVideo.hidden = true;
+      };
+      const showBgVideo = (): void => {
+        bgVideo.hidden = false;
+      };
+
+      bgVideo.addEventListener('loadeddata', showBgVideo, { once: true });
+      bgVideo.addEventListener('error', hideBgVideo, { once: true });
+      bgSource?.addEventListener('error', hideBgVideo, { once: true });
+    }
+
+    // --- 2. Fallback del slot multimedia derecho ---
     const mediaEl = heroRoot.querySelector<HTMLImageElement | HTMLVideoElement>('[data-hero-media]');
     const fallbackEl = heroRoot.querySelector<HTMLElement>('[data-hero-fallback]');
 
@@ -213,15 +237,67 @@ import { BRAND_CONFIG, BUSINESS_RULES } from '../../../shared/config';
 </script>
 
 <style>
-  /* Contenedor principal del Hero usando tokens del tema activo */
+  /* Contenedor principal del Hero: pantalla completa 100dvw x 100dvh */
   .gm-hero {
+    /* EDITABLE: Opacidad y desenfoque de la capa translúcida blanca sobre el video */
+    --hero-overlay-color: rgba(255, 255, 255, 0.72);
+    --hero-overlay-blur: 2px;
+
+    position: relative;
+    isolation: isolate;
+    overflow: hidden;
+    width: 100dvw;
+    max-width: 100%;
+    min-height: 100dvh;
+    display: flex;
+    align-items: center;
     background-color: var(--bg-hero);
-    color: var(--text-on-brand);
-    padding-block: var(--space-8) var(--space-12);
+    color: var(--text-main);
+    /* Espacio superior seguro para que el Header fijo nunca tape el contenido */
+    padding-top: calc(var(--gm-header-height, 68px) + var(--space-8));
+    padding-bottom: var(--space-12);
     border-bottom: var(--border-width) solid var(--border-color);
   }
 
+  /* CAPA 0: Video de fondo cubriendo el 100% del Hero */
+  .gm-hero__bg-media {
+    position: absolute;
+    inset: 0;
+    z-index: 0;
+    width: 100%;
+    height: 100%;
+    overflow: hidden;
+    pointer-events: none;
+  }
+
+  .gm-hero__bg-video {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    object-position: center;
+    display: block;
+  }
+
+  .gm-hero__bg-video[hidden] {
+    display: none;
+  }
+
+  /* CAPA 1: Velo translúcido blanco encima del video */
+  .gm-hero__bg-overlay {
+    position: absolute;
+    inset: 0;
+    z-index: 1;
+    background-color: var(--hero-overlay-color);
+    backdrop-filter: blur(var(--hero-overlay-blur));
+    -webkit-backdrop-filter: blur(var(--hero-overlay-blur));
+    pointer-events: none;
+  }
+
+  /* CAPA 2: Contenido principal por encima del velo blanco */
   .gm-hero__grid {
+    position: relative;
+    z-index: 2;
+    width: 100%;
     display: grid;
     grid-template-columns: 1fr;
     gap: var(--space-8);
@@ -242,7 +318,7 @@ import { BRAND_CONFIG, BUSINESS_RULES } from '../../../shared/config';
     padding: var(--space-2) var(--space-4);
     border-radius: var(--radius-pill);
     background-color: var(--bg-surface);
-    color: var(--text-main);
+    color: var(--brand-pink-dark);
     border: var(--border-width) solid var(--border-color);
     font-family: var(--font-display);
     font-size: var(--text-sm);
@@ -257,16 +333,19 @@ import { BRAND_CONFIG, BUSINESS_RULES } from '../../../shared/config';
     background-color: var(--brand-sky);
   }
 
+  /* Titular en alto contraste sobre la capa translúcida blanca */
   .gm-hero__title {
     font-size: var(--text-hero);
     font-weight: 700;
+    color: var(--text-main);
     max-width: 16ch;
   }
 
   .gm-hero__subtitle {
     font-size: var(--text-lg);
+    color: var(--text-main);
     max-width: 52ch;
-    opacity: 0.96;
+    opacity: 0.9;
   }
 
   /* Botonera CTA mobile-first (zona del pulgar >= 44px) */
@@ -352,7 +431,7 @@ import { BRAND_CONFIG, BUSINESS_RULES } from '../../../shared/config';
     width: 100%;
     min-height: 280px;
     border-radius: var(--radius-xl);
-    background-color: var(--bg-surface);
+    background-color: rgba(255, 255, 255, 0.92);
     color: var(--text-main);
     border: var(--border-width) solid var(--border-color);
     box-shadow: var(--shadow-lg);
@@ -409,7 +488,8 @@ import { BRAND_CONFIG, BUSINESS_RULES } from '../../../shared/config';
   /* Escritorio (>= 1024px): 2 columnas — texto a la izquierda, media a la derecha */
   @media (min-width: 1024px) {
     .gm-hero {
-      padding-block: var(--space-16);
+      padding-top: calc(var(--gm-header-height, 68px) + var(--space-12));
+      padding-bottom: var(--space-12);
     }
 
     .gm-hero__grid {

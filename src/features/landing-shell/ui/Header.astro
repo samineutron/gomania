@@ -2,21 +2,20 @@
 /**
  * ============================================================================
  * QUÉ HACE:
- * Renderiza el Header fijo (sticky) y responsive de GoManía SpA:
- * - Izquierda: logo horizontal a color (con fallback SVG a color si aún no
- *   subes el PNG final a `public/images/brand/logo-horizontal-color.png`).
- * - Centro: enlaces de navegación (`Inicio`, `Catálogo`, `Quiénes Somos`,
- *   `Contacto`).
- * - Derecha: botón de carrito con badge numérico conectado al `EventBus`
- *   (`carrito:actualizado` / `carrito:abrirDrawer`) + botón hamburguesa
- *   accesible en pantallas móviles.
+ * Renderiza el Header fijo en pantalla (`position: fixed`) con fondo en el
+ * rosado principal de la marca (`var(--brand-pink)`):
+ * - Izquierda: logo horizontal a color con área clickeable exacta al tamaño
+ *   del logo (sin extenderse hasta el enlace "Inicio").
+ * - Centro: navegación principal (`Inicio`, `Catálogo`, `Quiénes Somos`,
+ *   `Contacto`), cada enlace clickeable solo sobre su propio botón.
+ * - Derecha: botón de carrito con badge conectado al `EventBus`
+ *   (`carrito:actualizado` / `carrito:abrirDrawer`) + menú hamburguesa móvil.
  *
  * QUÉ PUEDES EDITAR AQUÍ:
- * - Para usar tu logo horizontal definitivo a color, solo guarda el archivo en
- *   `public/images/brand/logo-horizontal-color.png` (o cambia la ruta en
- *   `BRAND_CONFIG.logoHorizontalUrl` dentro de `src/shared/config.ts`).
+ * - Altura del header fijo: variable `--gm-header-height` en `<style>`.
+ * - Logo definitivo a color: guárdalo en `public/images/brand/logo-horizontal-color.png`
+ *   (o actualiza `BRAND_CONFIG.logoHorizontalUrl` en `src/shared/config.ts`).
  * - NUNCA reemplaces el logo por una versión en blanco y negro.
- * - Los colores se adaptan solos al cambiar `data-theme` en `BaseLayout.astro`.
  *
  * CON QUÉ MÓDULO CONECTA:
  * - Lee `BRAND_CONFIG` desde `src/shared/config.ts`.
@@ -32,11 +31,8 @@ import { NAV_ITEMS } from '../logic/landing-helpers';
   <div class="gm-container gm-header__inner">
     <!-- ======================================================================
          BLOQUE 1 (IZQUIERDA): LOGO HORIZONTAL A COLOR
-         INSTRUCCIÓN PARA REEMPLAZAR:
-         1. Guarda tu logo horizontal A COLOR (PNG transparente o SVG) en:
-            public/images/brand/logo-horizontal-color.png
-         2. Mientras ese archivo no exista, el navegador oculta el <img> y
-            muestra automáticamente el placeholder SVG a color de abajo.
+         Área clickeable ajustada estrictamente al logo (`width: fit-content`
+         + `justify-self: start`).
          ====================================================================== -->
     <a href="#inicio" class="gm-header__brand" aria-label={`Ir al inicio de ${BRAND_CONFIG.name}`}>
       <img
@@ -86,7 +82,7 @@ import { NAV_ITEMS } from '../logic/landing-helpers';
             font-size="8.5"
             letter-spacing="0.8"
             fill="currentColor"
-            opacity="0.9"
+            opacity="0.92"
           >GOMITAS &amp; MANÍ</text>
         </svg>
       </span>
@@ -305,15 +301,27 @@ import { NAV_ITEMS } from '../logic/landing-helpers';
 </script>
 
 <style>
-  /* Barra superior fija usando exclusivamente variables de src/shared/tokens.css */
+  /* Variable global para compensar el header fijo al hacer scroll por anclas */
+  :global(:root) {
+    --gm-header-height: 68px;
+  }
+
+  :global(html) {
+    scroll-padding-top: var(--gm-header-height);
+  }
+
+  /* Barra superior FIJA en pantalla con el rosado principal de la marca */
   .gm-header {
-    position: sticky;
+    position: fixed;
     top: 0;
-    z-index: var(--z-header);
-    background-color: var(--bg-header);
-    color: var(--text-on-header);
-    border-bottom: var(--border-width) solid var(--border-color);
-    box-shadow: var(--shadow-sm);
+    left: 0;
+    right: 0;
+    width: 100%;
+    z-index: var(--z-header, 100);
+    background-color: var(--brand-pink);
+    color: var(--cta-primary-text);
+    border-bottom: 1px solid rgba(255, 255, 255, 0.25);
+    box-shadow: var(--shadow-md);
   }
 
   .gm-header__inner {
@@ -321,20 +329,24 @@ import { NAV_ITEMS } from '../logic/landing-helpers';
     align-items: center;
     justify-content: space-between;
     gap: var(--space-3);
-    min-height: 68px;
+    min-height: var(--gm-header-height);
     padding-block: var(--space-2);
   }
 
-  /* Marca izquierda */
+  /* Marca izquierda: ancho ajustado EXACTAMENTE al logo (no invade el espacio hacia Inicio) */
   .gm-header__brand {
     display: inline-flex;
     align-items: center;
+    width: fit-content;
+    max-width: max-content;
     min-height: var(--touch-min);
     flex-shrink: 0;
+    color: var(--cta-primary-text);
     border-radius: var(--radius-sm);
   }
 
   .gm-header__logo-img {
+    display: block;
     height: 42px;
     width: auto;
     object-fit: contain;
@@ -367,17 +379,19 @@ import { NAV_ITEMS } from '../logic/landing-helpers';
   .gm-header__nav-link {
     display: inline-flex;
     align-items: center;
+    width: fit-content;
     min-height: var(--touch-min);
     padding-inline: var(--space-3);
     border-radius: var(--radius-pill);
-    font-weight: 600;
+    color: var(--cta-primary-text);
+    font-weight: 700;
     font-size: var(--text-sm);
     transition: background-color var(--transition-fast), color var(--transition-fast);
   }
 
   .gm-header__nav-link:hover {
-    background-color: var(--brand-sky-soft);
-    color: var(--text-main);
+    background-color: rgba(255, 255, 255, 0.22);
+    color: var(--cta-primary-text);
   }
 
   /* Contenedor derecho (carrito + menú móvil) */
@@ -387,14 +401,14 @@ import { NAV_ITEMS } from '../logic/landing-helpers';
     gap: var(--space-2);
   }
 
-  /* Botón de carrito con alto contraste y badge celeste */
+  /* Botón de carrito con alto contraste sobre el header rosado */
   .gm-cart-btn {
     display: inline-flex;
     align-items: center;
     gap: var(--space-2);
     min-height: var(--touch-min);
     padding: var(--space-2) var(--space-3);
-    border: var(--border-width) solid var(--border-color);
+    border: 1.5px solid rgba(255, 255, 255, 0.4);
     border-radius: var(--radius-pill);
     background-color: var(--cta-primary);
     color: var(--cta-primary-text);
@@ -437,7 +451,7 @@ import { NAV_ITEMS } from '../logic/landing-helpers';
     100% { transform: scale(1); }
   }
 
-  /* Botón hamburguesa móvil (>= 44x44px) */
+  /* Botón hamburguesa móvil (>= 44x44px) con alto contraste sobre rosado */
   .gm-menu-toggle {
     display: inline-flex;
     align-items: center;
@@ -445,10 +459,10 @@ import { NAV_ITEMS } from '../logic/landing-helpers';
     width: var(--touch-min);
     height: var(--touch-min);
     padding: 0;
-    border: var(--border-width) solid var(--border-color);
+    border: 1.5px solid rgba(255, 255, 255, 0.5);
     border-radius: var(--radius-md);
-    background-color: var(--bg-surface);
-    color: var(--text-main);
+    background-color: rgba(255, 255, 255, 0.16);
+    color: var(--cta-primary-text);
     box-shadow: var(--shadow-sm);
   }
 
@@ -486,6 +500,7 @@ import { NAV_ITEMS } from '../logic/landing-helpers';
     min-height: var(--touch-min);
     padding-inline: var(--space-3);
     border-radius: var(--radius-md);
+    color: var(--text-main);
     font-weight: 600;
     transition: background-color var(--transition-fast);
   }
@@ -509,12 +524,18 @@ import { NAV_ITEMS } from '../logic/landing-helpers';
       align-items: center;
     }
 
+    /* CLAVE: Evita que el link del logo se estire a todo el ancho de la columna 1fr */
+    .gm-header__brand {
+      justify-self: start;
+    }
+
     .gm-header__nav {
       display: block;
+      justify-self: center;
     }
 
     .gm-header__actions {
-      justify-content: flex-end;
+      justify-self: end;
     }
 
     .gm-menu-toggle,
