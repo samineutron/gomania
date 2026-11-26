@@ -1,0 +1,824 @@
+---
+/**
+ * ============================================================================
+ * QUÉ HACE:
+ * Componente visual Astro del módulo `catalogo` para GoManía SpA.
+ * Renderiza el encabezado del catálogo, buscador instantáneo, chips de filtros
+ * jerárquicos (Todos / Gomitas / Maní y sus subcategorías dinámicas), banner
+ * contextual del mix activo y los 5 estados completos (ideal, vacío, carga
+ * con 8 skeletons, error con botón "Reintentar" y "Agotado" si stock < 80 g).
+ *
+ * QUÉ PUEDES EDITAR AQUÍ:
+ * - Títulos y subtítulos de la sección en el HTML de abajo.
+ * - Espaciados o columnas de la grilla en el bloque `<style is:global>`
+ *   (todos los colores usan exclusivamente variables de `src/shared/tokens.css`,
+ *   así que cambiar `data-theme` en `<html>` actualiza todo automáticamente).
+ *
+ * CON QUÉ MÓDULO CONECTA:
+ * - Se monta en el contenedor `#catalogo` de `src/pages/index.astro`.
+ * - Ejecuta `initCatalogoSection()` desde `./catalogo.client.ts`.
+ * - Se comunica con `mix-builder` vía `EventBus` y lee inventario a través de
+ *   la fachada `src/features/catalogo/index.ts`.
+ * ============================================================================
+ */
+---
+
+<div id="catalogo-module" class="gm-cat-wrapper" aria-labelledby="catalogo-heading">
+  <div class="gm-cat-container">
+    <!-- Encabezado de sección -->
+    <header class="gm-cat-header">
+      <div class="gm-cat-heading-group">
+        <span class="gm-cat-eyebrow">Catálogo en vivo</span>
+        <h2 id="catalogo-heading" class="gm-cat-title">Explora nuestros sabores</h2>
+        <p class="gm-cat-subtitle">
+          Elige gomitas dulces o ácidas y maní dulce o salado. Stock actualizado por gramos.
+        </p>
+      </div>
+      <p class="gm-cat-count" data-cat-count aria-live="polite">Cargando sabores...</p>
+    </header>
+
+    <!-- Barra de controles: buscador + filtros jerárquicos -->
+    <div class="gm-cat-controls">
+      <!-- Buscador accesible con icono SVG inline -->
+      <div class="gm-cat-search-box" role="search">
+        <svg
+          class="gm-cat-search-icon"
+          viewBox="0 0 24 24"
+          width="20"
+          height="20"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="2"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+          aria-hidden="true"
+        >
+          <circle cx="11" cy="11" r="8"></circle>
+          <path d="m21 21-4.3-4.3"></path>
+        </svg>
+        <label for="gm-catalogo-search" class="gm-sr-only">Buscar sabor por nombre</label>
+        <input
+          id="gm-catalogo-search"
+          type="search"
+          class="gm-cat-search-input"
+          placeholder="Buscar sabor (ej. ositos, ácido, merkén...)"
+          autocomplete="off"
+          data-cat-search
+        />
+        <button
+          type="button"
+          class="gm-cat-search-clear"
+          aria-label="Limpiar búsqueda"
+          data-cat-clear-search
+          hidden
+        >
+          <svg
+            viewBox="0 0 24 24"
+            width="18"
+            height="18"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2.2"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            aria-hidden="true"
+          >
+            <path d="M18 6 6 18M6 6l12 12"></path>
+          </svg>
+        </button>
+      </div>
+
+      <!-- Nivel 1: Filtro principal (Todos | Gomitas | Maní) -->
+      <div class="gm-cat-filter-row" role="group" aria-label="Filtrar por tipo de producto">
+        <div class="gm-cat-chips" data-cat-type-chips></div>
+      </div>
+
+      <!-- Nivel 2: Subfiltro dinámico según tipo (Gomitas: Dulces/Ácidas; Maní: Dulce/Salado) -->
+      <div class="gm-cat-filter-row" role="group" aria-label="Filtrar por subcategoría de sabor">
+        <div class="gm-cat-subchips" data-cat-category-chips></div>
+      </div>
+    </div>
+
+    <!-- Banner contextual sincronizado con `mix-builder` (oculto si no hay mix activo) -->
+    <div class="gm-cat-mix-banner" data-cat-mix-banner hidden role="status" aria-live="polite">
+      <div class="gm-cat-mix-banner-info">
+        <svg
+          viewBox="0 0 24 24"
+          width="20"
+          height="20"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="2"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+          aria-hidden="true"
+        >
+          <path d="M6 2 3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4Z"></path>
+          <path d="M3 6h18"></path>
+          <path d="M16 10a4 4 0 0 1-8 0"></path>
+        </svg>
+        <span data-cat-mix-summary></span>
+      </div>
+      <label class="gm-cat-toggle">
+        <input type="checkbox" data-cat-hide-incompatible />
+        <span>Ocultar incompatibles</span>
+      </label>
+    </div>
+
+    <!-- ESTADO ERROR: aviso discreto con botón Reintentar -->
+    <div class="gm-cat-error" data-cat-error hidden role="alert">
+      <div class="gm-cat-error-content">
+        <svg
+          viewBox="0 0 24 24"
+          width="20"
+          height="20"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="2"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+          aria-hidden="true"
+        >
+          <circle cx="12" cy="12" r="10"></circle>
+          <path d="M12 8v4M12 16h.01"></path>
+        </svg>
+        <span data-cat-error-text>No pudimos actualizar el stock en línea.</span>
+      </div>
+      <button type="button" class="gm-cat-retry-btn" data-cat-retry>
+        Reintentar
+      </button>
+    </div>
+
+    <!-- ESTADO CARGA: grilla de 8 skeletons animados -->
+    <div class="gm-cat-grid" data-cat-loading aria-busy="true" aria-label="Cargando sabores"></div>
+
+    <!-- ESTADO IDEAL: grilla responsive mobile-first de productos -->
+    <div class="gm-cat-grid" data-cat-grid hidden></div>
+
+    <!-- ESTADO VACÍO: sin resultados para búsqueda o filtros -->
+    <div class="gm-cat-empty" data-cat-empty hidden role="status">
+      <div class="gm-cat-empty-icon" aria-hidden="true">
+        <svg
+          viewBox="0 0 24 24"
+          width="40"
+          height="40"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="1.8"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+        >
+          <circle cx="11" cy="11" r="8"></circle>
+          <path d="m21 21-4.3-4.3"></path>
+          <path d="M8 11h6"></path>
+        </svg>
+      </div>
+      <h3 class="gm-cat-empty-title">No encontramos ese sabor</h3>
+      <p class="gm-cat-empty-text">
+        Prueba con otra palabra o limpia los filtros para ver todo el catálogo disponible.
+      </p>
+      <button type="button" class="gm-cat-reset-btn" data-cat-reset-filters>
+        Limpiar filtros
+      </button>
+    </div>
+  </div>
+</div>
+
+<script>
+  import { initCatalogoSection } from './catalogo.client';
+
+  // Inicializa el módulo al cargar la página (y soporta navegaciones Astro si se activan)
+  initCatalogoSection();
+</script>
+
+<style is:global>
+  /* ==========================================================================
+   * ESTILOS ENCAPSULADOS DEL MÓDULO `catalogo` (#catalogo-module)
+   * Usa EXCLUSIVAMENTE tokens de `src/shared/tokens.css` para respetar los 3
+   * temas (`impacto-rosado`, `candy-limpio`, `pop-dual`).
+   * ========================================================================== */
+
+  #catalogo-module.gm-cat-wrapper {
+    background-color: var(--bg-canvas);
+    color: var(--text-main);
+    padding: 2.5rem 1rem 3.5rem;
+  }
+
+  #catalogo-module .gm-cat-container {
+    width: 100%;
+    max-width: 1200px;
+    margin: 0 auto;
+    display: flex;
+    flex-direction: column;
+    gap: 1.25rem;
+  }
+
+  #catalogo-module .gm-sr-only {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    margin: -1px;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    white-space: nowrap;
+    border: 0;
+  }
+
+  /* Encabezado */
+  #catalogo-module .gm-cat-header {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+  }
+
+  #catalogo-module .gm-cat-eyebrow {
+    display: inline-block;
+    font-size: 0.8125rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    color: var(--brand-pink);
+    margin-bottom: 0.25rem;
+  }
+
+  #catalogo-module .gm-cat-title {
+    font-family: var(--font-heading, 'Fredoka', sans-serif);
+    font-size: clamp(1.75rem, 4vw, 2.35rem);
+    line-height: 1.15;
+    margin: 0;
+    color: var(--text-main);
+  }
+
+  #catalogo-module .gm-cat-subtitle {
+    margin: 0.35rem 0 0;
+    color: var(--text-muted);
+    font-size: 0.95rem;
+    max-width: 56ch;
+  }
+
+  #catalogo-module .gm-cat-count {
+    margin: 0;
+    font-size: 0.875rem;
+    font-weight: 600;
+    color: var(--text-muted);
+  }
+
+  /* Controles de búsqueda y filtros */
+  #catalogo-module .gm-cat-controls {
+    display: flex;
+    flex-direction: column;
+    gap: 0.85rem;
+    background-color: var(--bg-surface);
+    padding: 1rem;
+    border-radius: var(--radius-lg, 1rem);
+    border: var(--border-width, 1px) solid var(--border-subtle, rgba(17, 24, 39, 0.1));
+    box-shadow: var(--shadow-sm, 0 2px 8px rgba(17, 24, 39, 0.05));
+  }
+
+  #catalogo-module .gm-cat-search-box {
+    position: relative;
+    display: flex;
+    align-items: center;
+  }
+
+  #catalogo-module .gm-cat-search-icon {
+    position: absolute;
+    left: 0.9rem;
+    color: var(--text-muted);
+    pointer-events: none;
+  }
+
+  #catalogo-module .gm-cat-search-input {
+    width: 100%;
+    min-height: 46px;
+    padding: 0.65rem 2.75rem 0.65rem 2.75rem;
+    border-radius: var(--radius-md, 0.75rem);
+    border: var(--border-width, 1px) solid var(--border-subtle, rgba(17, 24, 39, 0.16));
+    background-color: var(--bg-canvas);
+    color: var(--text-main);
+    font-size: 0.95rem;
+    font-family: inherit;
+    transition: border-color 0.2s ease, box-shadow 0.2s ease;
+  }
+
+  #catalogo-module .gm-cat-search-input:focus {
+    outline: none;
+    border-color: var(--brand-sky);
+    box-shadow: 0 0 0 3px color-mix(in srgb, var(--brand-sky) 22%, transparent);
+  }
+
+  #catalogo-module .gm-cat-search-clear {
+    position: absolute;
+    right: 0.35rem;
+    min-width: 40px;
+    min-height: 40px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    border: none;
+    background: transparent;
+    color: var(--text-muted);
+    cursor: pointer;
+    border-radius: 999px;
+  }
+
+  #catalogo-module .gm-cat-search-clear:hover {
+    color: var(--text-main);
+    background-color: var(--bg-surface);
+  }
+
+  #catalogo-module .gm-cat-chips,
+  #catalogo-module .gm-cat-subchips {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+  }
+
+  #catalogo-module .gm-cat-chip {
+    min-height: 44px;
+    padding: 0.5rem 1.05rem;
+    border-radius: 999px;
+    border: var(--border-width, 1px) solid var(--border-subtle, rgba(17, 24, 39, 0.14));
+    background-color: var(--bg-canvas);
+    color: var(--text-main);
+    font-weight: 700;
+    font-size: 0.9rem;
+    font-family: inherit;
+    cursor: pointer;
+    transition: background-color 0.18s ease, color 0.18s ease, border-color 0.18s ease, transform 0.12s ease;
+  }
+
+  #catalogo-module .gm-cat-chip:hover {
+    border-color: var(--brand-pink);
+  }
+
+  #catalogo-module .gm-cat-chip--active {
+    background-color: var(--brand-pink);
+    border-color: var(--brand-pink);
+    color: var(--text-on-brand);
+  }
+
+  #catalogo-module .gm-cat-subchip {
+    min-height: 40px;
+    padding: 0.4rem 0.9rem;
+    border-radius: 999px;
+    border: 1px solid var(--border-subtle, rgba(17, 24, 39, 0.14));
+    background-color: transparent;
+    color: var(--text-muted);
+    font-weight: 600;
+    font-size: 0.85rem;
+    font-family: inherit;
+    cursor: pointer;
+    transition: background-color 0.18s ease, color 0.18s ease, border-color 0.18s ease;
+  }
+
+  #catalogo-module .gm-cat-subchip:hover {
+    border-color: var(--brand-sky);
+    color: var(--text-main);
+  }
+
+  #catalogo-module .gm-cat-subchip--active {
+    background-color: var(--brand-sky);
+    border-color: var(--brand-sky);
+    color: var(--text-on-brand);
+  }
+
+  /* Banner contextual del mix activo */
+  #catalogo-module .gm-cat-mix-banner {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.75rem;
+    padding: 0.85rem 1rem;
+    border-radius: var(--radius-md, 0.75rem);
+    background-color: color-mix(in srgb, var(--brand-sky) 12%, var(--bg-surface));
+    border: 1px solid color-mix(in srgb, var(--brand-sky) 35%, transparent);
+    color: var(--text-main);
+    font-size: 0.9rem;
+    font-weight: 600;
+  }
+
+  #catalogo-module .gm-cat-mix-banner[hidden] {
+    display: none;
+  }
+
+  #catalogo-module .gm-cat-mix-banner-info {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+  }
+
+  #catalogo-module .gm-cat-toggle {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.45rem;
+    cursor: pointer;
+    font-size: 0.85rem;
+    color: var(--text-main);
+    min-height: 36px;
+  }
+
+  #catalogo-module .gm-cat-toggle input {
+    width: 18px;
+    height: 18px;
+    accent-color: var(--brand-pink);
+  }
+
+  /* Estado Error */
+  #catalogo-module .gm-cat-error {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.75rem;
+    padding: 0.85rem 1rem;
+    border-radius: var(--radius-md, 0.75rem);
+    background-color: color-mix(in srgb, var(--state-error) 10%, var(--bg-surface));
+    border: 1px solid color-mix(in srgb, var(--state-error) 35%, transparent);
+    color: var(--state-error);
+    font-size: 0.9rem;
+    font-weight: 600;
+  }
+
+  #catalogo-module .gm-cat-error[hidden] {
+    display: none;
+  }
+
+  #catalogo-module .gm-cat-error-content {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+  }
+
+  #catalogo-module .gm-cat-retry-btn {
+    min-height: 40px;
+    padding: 0.45rem 0.95rem;
+    border-radius: 999px;
+    border: 1px solid var(--state-error);
+    background-color: var(--bg-surface);
+    color: var(--state-error);
+    font-weight: 700;
+    font-size: 0.85rem;
+    cursor: pointer;
+  }
+
+  #catalogo-module .gm-cat-retry-btn:hover {
+    background-color: var(--state-error);
+    color: var(--text-on-brand);
+  }
+
+  /* Grilla responsive mobile-first */
+  #catalogo-module .gm-cat-grid {
+    display: grid;
+    grid-template-columns: repeat(1, minmax(0, 1fr));
+    gap: 1rem;
+  }
+
+  #catalogo-module .gm-cat-grid[hidden] {
+    display: none;
+  }
+
+  @media (min-width: 420px) {
+    #catalogo-module .gm-cat-grid {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+  }
+
+  @media (min-width: 768px) {
+    #catalogo-module .gm-cat-header {
+      flex-direction: row;
+      align-items: flex-end;
+      justify-content: space-between;
+    }
+
+    #catalogo-module .gm-cat-grid {
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 1.25rem;
+    }
+  }
+
+  @media (min-width: 1024px) {
+    #catalogo-module .gm-cat-grid {
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+    }
+  }
+
+  /* Tarjeta de producto */
+  #catalogo-module .gm-cat-card {
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    background-color: var(--bg-surface);
+    border-radius: var(--radius-lg, 1rem);
+    border: var(--border-width, 1px) solid var(--border-subtle, rgba(17, 24, 39, 0.1));
+    padding: 0.9rem;
+    gap: 0.75rem;
+    box-shadow: var(--shadow-sm, 0 2px 10px rgba(17, 24, 39, 0.05));
+    transition: transform 0.18s ease, box-shadow 0.18s ease, border-color 0.18s ease, opacity 0.18s ease;
+  }
+
+  #catalogo-module .gm-cat-card--disponible:hover {
+    transform: translateY(-3px);
+    border-color: var(--brand-sky);
+    box-shadow: var(--shadow-md, 0 8px 20px rgba(17, 24, 39, 0.09));
+  }
+
+  #catalogo-module .gm-cat-card--seleccionado {
+    border-color: var(--state-success);
+    box-shadow: 0 0 0 2px color-mix(in srgb, var(--state-success) 25%, transparent);
+  }
+
+  #catalogo-module .gm-cat-card--agotado,
+  #catalogo-module .gm-cat-card--incompatible,
+  #catalogo-module .gm-cat-card--stock-insuficiente,
+  #catalogo-module .gm-cat-card--cupo-lleno {
+    opacity: 0.72;
+  }
+
+  #catalogo-module .gm-cat-card--pulse {
+    transform: scale(0.98);
+    border-color: var(--brand-pink);
+  }
+
+  /* Media de la card (`imgCalcomania`) */
+  #catalogo-module .gm-cat-card-media {
+    position: relative;
+    aspect-ratio: 1 / 1;
+    border-radius: var(--radius-md, 0.75rem);
+    background-color: var(--bg-canvas);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+    padding: 0.75rem;
+  }
+
+  #catalogo-module .gm-cat-card-img {
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+    display: block;
+  }
+
+  #catalogo-module .gm-cat-status-pill {
+    position: absolute;
+    top: 0.5rem;
+    left: 0.5rem;
+    padding: 0.25rem 0.6rem;
+    border-radius: 999px;
+    font-size: 0.72rem;
+    font-weight: 700;
+    color: var(--text-on-brand);
+    background-color: var(--text-main);
+  }
+
+  #catalogo-module .gm-cat-status-pill--seleccionado {
+    background-color: var(--state-success);
+  }
+
+  #catalogo-module .gm-cat-status-pill--agotado,
+  #catalogo-module .gm-cat-status-pill--incompatible {
+    background-color: var(--state-error);
+  }
+
+  #catalogo-module .gm-cat-status-pill--stock-insuficiente,
+  #catalogo-module .gm-cat-status-pill--cupo-lleno {
+    background-color: var(--state-warn);
+  }
+
+  /* Cuerpo de texto de la card */
+  #catalogo-module .gm-cat-card-body {
+    display: flex;
+    flex-direction: column;
+    gap: 0.35rem;
+    flex: 1;
+  }
+
+  #catalogo-module .gm-cat-badges {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.35rem;
+  }
+
+  #catalogo-module .gm-cat-badge {
+    display: inline-block;
+    padding: 0.2rem 0.55rem;
+    border-radius: 999px;
+    font-size: 0.72rem;
+    font-weight: 700;
+  }
+
+  #catalogo-module .gm-cat-badge--type {
+    background-color: var(--bg-canvas);
+    color: var(--text-main);
+  }
+
+  #catalogo-module .gm-cat-badge--dulce {
+    background-color: color-mix(in srgb, var(--brand-pink) 14%, var(--bg-surface));
+    color: var(--brand-pink);
+  }
+
+  #catalogo-module .gm-cat-badge--acido {
+    background-color: color-mix(in srgb, var(--brand-sky) 16%, var(--bg-surface));
+    color: var(--text-main);
+  }
+
+  #catalogo-module .gm-cat-badge--salado {
+    background-color: color-mix(in srgb, var(--kraft-bag) 26%, var(--bg-surface));
+    color: var(--text-main);
+  }
+
+  #catalogo-module .gm-cat-card-title {
+    margin: 0.15rem 0 0;
+    font-family: var(--font-heading, 'Fredoka', sans-serif);
+    font-size: 1.05rem;
+    line-height: 1.25;
+    color: var(--text-main);
+  }
+
+  #catalogo-module .gm-cat-stock {
+    margin: 0;
+    font-size: 0.8rem;
+    font-weight: 600;
+    color: var(--text-muted);
+  }
+
+  #catalogo-module .gm-cat-stock--low {
+    color: var(--state-warn);
+  }
+
+  #catalogo-module .gm-cat-stock--empty {
+    color: var(--state-error);
+  }
+
+  #catalogo-module .gm-cat-reason {
+    margin: 0.15rem 0 0;
+    font-size: 0.76rem;
+    line-height: 1.3;
+    color: var(--state-error);
+    font-weight: 600;
+  }
+
+  /* Botón de acción (>= 44px táctil) */
+  #catalogo-module .gm-cat-action {
+    width: 100%;
+    min-height: 44px;
+    padding: 0.6rem 0.9rem;
+    border-radius: var(--radius-md, 0.75rem);
+    border: none;
+    background-color: var(--cta-primary);
+    color: var(--text-on-brand);
+    font-family: inherit;
+    font-weight: 700;
+    font-size: 0.9rem;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.45rem;
+    cursor: pointer;
+    transition: background-color 0.18s ease, transform 0.12s ease;
+  }
+
+  #catalogo-module .gm-cat-action--disponible:hover {
+    background-color: var(--brand-sky);
+  }
+
+  #catalogo-module .gm-cat-action--seleccionado {
+    background-color: var(--state-success);
+    cursor: default;
+  }
+
+  #catalogo-module .gm-cat-action:disabled:not(.gm-cat-action--seleccionado) {
+    background-color: var(--bg-canvas);
+    color: var(--text-muted);
+    cursor: not-allowed;
+    border: 1px solid var(--border-subtle, rgba(17, 24, 39, 0.12));
+  }
+
+  /* Estado Carga (Skeletons pulsantes) */
+  #catalogo-module .gm-cat-skeleton {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+    padding: 0.9rem;
+    border-radius: var(--radius-lg, 1rem);
+    background-color: var(--bg-surface);
+    border: 1px solid var(--border-subtle, rgba(17, 24, 39, 0.08));
+  }
+
+  #catalogo-module .gm-cat-skeleton-img,
+  #catalogo-module .gm-cat-skeleton-line,
+  #catalogo-module .gm-cat-skeleton-btn {
+    border-radius: 0.65rem;
+    background: linear-gradient(
+      90deg,
+      color-mix(in srgb, var(--brand-pink) 10%, var(--bg-canvas)) 25%,
+      color-mix(in srgb, var(--brand-pink) 22%, var(--bg-canvas)) 50%,
+      color-mix(in srgb, var(--brand-pink) 10%, var(--bg-canvas)) 75%
+    );
+    background-size: 200% 100%;
+    animation: gm-cat-shimmer 1.4s ease-in-out infinite;
+  }
+
+  #catalogo-module .gm-cat-skeleton-img {
+    aspect-ratio: 1 / 1;
+    width: 100%;
+  }
+
+  #catalogo-module .gm-cat-skeleton-line {
+    height: 16px;
+    width: 85%;
+  }
+
+  #catalogo-module .gm-cat-skeleton-line--short {
+    width: 52%;
+    height: 13px;
+  }
+
+  #catalogo-module .gm-cat-skeleton-btn {
+    height: 44px;
+    width: 100%;
+    margin-top: auto;
+  }
+
+  @keyframes gm-cat-shimmer {
+    0% {
+      background-position: 200% 0;
+    }
+    100% {
+      background-position: -200% 0;
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    #catalogo-module .gm-cat-skeleton-img,
+    #catalogo-module .gm-cat-skeleton-line,
+    #catalogo-module .gm-cat-skeleton-btn {
+      animation: none;
+    }
+  }
+
+  /* Estado Vacío */
+  #catalogo-module .gm-cat-empty {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    gap: 0.6rem;
+    padding: 2.5rem 1.25rem;
+    background-color: var(--bg-surface);
+    border-radius: var(--radius-lg, 1rem);
+    border: 1px dashed var(--border-subtle, rgba(17, 24, 39, 0.2));
+  }
+
+  #catalogo-module .gm-cat-empty[hidden] {
+    display: none;
+  }
+
+  #catalogo-module .gm-cat-empty-icon {
+    width: 72px;
+    height: 72px;
+    border-radius: 999px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background-color: color-mix(in srgb, var(--brand-pink) 12%, var(--bg-canvas));
+    color: var(--brand-pink);
+    margin-bottom: 0.25rem;
+  }
+
+  #catalogo-module .gm-cat-empty-title {
+    margin: 0;
+    font-family: var(--font-heading, 'Fredoka', sans-serif);
+    font-size: 1.35rem;
+    color: var(--text-main);
+  }
+
+  #catalogo-module .gm-cat-empty-text {
+    margin: 0;
+    color: var(--text-muted);
+    max-width: 40ch;
+    font-size: 0.95rem;
+  }
+
+  #catalogo-module .gm-cat-reset-btn {
+    margin-top: 0.5rem;
+    min-height: 44px;
+    padding: 0.65rem 1.35rem;
+    border-radius: 999px;
+    border: none;
+    background-color: var(--cta-primary);
+    color: var(--text-on-brand);
+    font-family: inherit;
+    font-weight: 700;
+    font-size: 0.95rem;
+    cursor: pointer;
+    transition: background-color 0.18s ease;
+  }
+
+  #catalogo-module .gm-cat-reset-btn:hover {
+    background-color: var(--brand-sky);
+  }
+</style>

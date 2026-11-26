@@ -1,0 +1,386 @@
+---
+/**
+ * ============================================================================
+ * QUÉ HACE:
+ * Renderiza la sección interactiva "Quiénes Somos" con los 4 hitos reales de
+ * la historia de GoManía SpA en la USM (Universidad Técnica Federico Santa
+ * María): carrusel navegable con botones Anterior/Siguiente, selector directo
+ * por hito y soporte de teclado (flechas izquierda/derecha).
+ *
+ * QUÉ PUEDES EDITAR AQUÍ:
+ * - Para cambiar los textos de cualquiera de los 4 hitos, edita el arreglo
+ *   `STORY_MILESTONES` dentro de `src/shared/config.ts` (no hace falta tocar
+ *   este componente).
+ * - Los colores se ajustan automáticamente con `src/shared/tokens.css`.
+ *
+ * CON QUÉ MÓDULO CONECTA:
+ * - Lee `LANDING_CONFIG.story` desde `src/shared/config.ts` (contrato
+ *   `StoryMilestoneDTO` en `src/contracts/landing-shell.contract.ts`).
+ * - Usa funciones puras de `../logic/landing-helpers.ts`.
+ * ============================================================================
+ */
+import { LANDING_CONFIG } from '../../../shared/config';
+
+const milestones = LANDING_CONFIG.story;
+const totalMilestones = milestones.length;
+---
+
+<div class="gm-story" data-story-root data-story-total={totalMilestones}>
+  <div class="gm-container">
+    <!-- Encabezado de sección -->
+    <div class="gm-story__header">
+      <span class="gm-story__badge">Historia real · USM</span>
+      <h2 class="gm-story__title">Quiénes Somos</h2>
+      <p class="gm-story__lead">
+        De un puesto querido en los pasillos de la Universidad Técnica Federico
+        Santa María a endulzar todo Chile con GoManía SpA.
+      </p>
+    </div>
+
+    <!-- Barra de pasos navegables (1 al 4) -->
+    <div class="gm-story__steps" role="tablist" aria-label="Hitos de la historia de GoManía SpA">
+      {milestones.map((item, index) => (
+        <button
+          type="button"
+          role="tab"
+          id={`story-tab-${item.step}`}
+          aria-selected={index === 0 ? 'true' : 'false'}
+          aria-controls={`story-panel-${item.step}`}
+          class={`gm-story__step-btn ${index === 0 ? 'is-active' : ''}`}
+          data-story-tab={index}
+        >
+          <span class="gm-story__step-num">0{item.step}</span>
+          <span class="gm-story__step-label">{item.title}</span>
+        </button>
+      ))}
+    </div>
+
+    <!-- Tarjeta activa del carrusel interactivo -->
+    <div class="gm-story__stage" aria-live="polite">
+      {milestones.map((item, index) => (
+        <article
+          id={`story-panel-${item.step}`}
+          role="tabpanel"
+          aria-labelledby={`story-tab-${item.step}`}
+          class={`gm-story__card ${index === 0 ? 'is-active' : ''}`}
+          hidden={index !== 0}
+          data-story-panel={index}
+        >
+          <div class="gm-story__card-meta">
+            <span class="gm-story__pill">Hito {item.step} de {totalMilestones}</span>
+          </div>
+          <h3 class="gm-story__card-title">{item.title}</h3>
+          <p class="gm-story__card-body">{item.body}</p>
+        </article>
+      ))}
+
+      <!-- Controles Anterior / Siguiente (zona del pulgar >= 44px) -->
+      <div class="gm-story__controls">
+        <button
+          type="button"
+          class="gm-story__nav-btn"
+          aria-label="Hito anterior"
+          data-story-prev
+        >
+          <svg
+            width="20"
+            height="20"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2.3"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            aria-hidden="true"
+          >
+            <path d="m15 18-6-6 6-6" />
+          </svg>
+          Anterior
+        </button>
+
+        <span class="gm-story__counter" data-story-counter>
+          1 / {totalMilestones}
+        </span>
+
+        <button
+          type="button"
+          class="gm-story__nav-btn gm-story__nav-btn--primary"
+          aria-label="Siguiente hito"
+          data-story-next
+        >
+          Siguiente
+          <svg
+            width="20"
+            height="20"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2.3"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            aria-hidden="true"
+          >
+            <path d="m9 18 6-6-6-6" />
+          </svg>
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+  /**
+   * Controlador interactivo del carrusel "Quiénes Somos".
+   * Usa las funciones puras de `landing-helpers.ts` para calcular índices.
+   */
+  import {
+    clampStepIndex,
+    getNextStepIndex,
+    getPrevStepIndex,
+  } from '../logic/landing-helpers';
+
+  const storyRoot = document.querySelector<HTMLElement>('[data-story-root]');
+
+  if (storyRoot) {
+    const tabs = Array.from(storyRoot.querySelectorAll<HTMLButtonElement>('[data-story-tab]'));
+    const panels = Array.from(storyRoot.querySelectorAll<HTMLElement>('[data-story-panel]'));
+    const prevBtn = storyRoot.querySelector<HTMLButtonElement>('[data-story-prev]');
+    const nextBtn = storyRoot.querySelector<HTMLButtonElement>('[data-story-next]');
+    const counter = storyRoot.querySelector<HTMLElement>('[data-story-counter]');
+
+    const total = panels.length;
+    let activeIndex = 0;
+
+    const renderStep = (nextIndex: number): void => {
+      activeIndex = clampStepIndex(nextIndex, total);
+
+      tabs.forEach((tab, idx) => {
+        const selected = idx === activeIndex;
+        tab.setAttribute('aria-selected', String(selected));
+        tab.classList.toggle('is-active', selected);
+      });
+
+      panels.forEach((panel, idx) => {
+        const selected = idx === activeIndex;
+        panel.hidden = !selected;
+        panel.classList.toggle('is-active', selected);
+      });
+
+      if (counter) {
+        counter.textContent = `${activeIndex + 1} / ${total}`;
+      }
+    };
+
+    tabs.forEach((tab, idx) => {
+      tab.addEventListener('click', () => renderStep(idx));
+      tab.addEventListener('keydown', (event: KeyboardEvent) => {
+        if (event.key === 'ArrowRight') {
+          event.preventDefault();
+          const target = getNextStepIndex(idx, total);
+          renderStep(target);
+          tabs[target]?.focus();
+        } else if (event.key === 'ArrowLeft') {
+          event.preventDefault();
+          const target = getPrevStepIndex(idx, total);
+          renderStep(target);
+          tabs[target]?.focus();
+        }
+      });
+    });
+
+    prevBtn?.addEventListener('click', () => {
+      renderStep(getPrevStepIndex(activeIndex, total));
+    });
+
+    nextBtn?.addEventListener('click', () => {
+      renderStep(getNextStepIndex(activeIndex, total));
+    });
+  }
+</script>
+
+<style>
+  .gm-story {
+    padding-block: var(--space-12);
+    background-color: var(--bg-soft);
+    border-top: var(--border-width) solid var(--border-color);
+    border-bottom: var(--border-width) solid var(--border-color);
+  }
+
+  .gm-story__header {
+    display: grid;
+    gap: var(--space-3);
+    text-align: center;
+    justify-items: center;
+    margin-bottom: var(--space-8);
+  }
+
+  .gm-story__badge {
+    display: inline-block;
+    padding: var(--space-1) var(--space-4);
+    border-radius: var(--radius-pill);
+    background-color: var(--brand-sky-soft);
+    color: var(--brand-sky-dark);
+    border: var(--border-width) solid var(--border-color);
+    font-size: var(--text-xs);
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+  }
+
+  .gm-story__title {
+    font-size: var(--text-3xl);
+    color: var(--text-main);
+  }
+
+  .gm-story__lead {
+    max-width: 58ch;
+    color: var(--text-muted);
+    font-size: var(--text-base);
+  }
+
+  /* Selector de hitos: 2 columnas en móvil, 4 en escritorio */
+  .gm-story__steps {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: var(--space-3);
+    margin-bottom: var(--space-6);
+  }
+
+  .gm-story__step-btn {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: var(--space-1);
+    min-height: var(--touch-min);
+    padding: var(--space-3) var(--space-4);
+    border-radius: var(--radius-lg);
+    border: var(--border-width) solid var(--border-color);
+    background-color: var(--bg-surface);
+    color: var(--text-main);
+    text-align: left;
+    box-shadow: var(--shadow-sm);
+    transition: background-color var(--transition-fast), border-color var(--transition-fast), transform var(--transition-fast);
+  }
+
+  .gm-story__step-btn:hover {
+    transform: translateY(-1px);
+    background-color: var(--brand-sky-soft);
+  }
+
+  .gm-story__step-btn.is-active {
+    background-color: var(--brand-pink);
+    color: var(--cta-primary-text);
+    box-shadow: var(--shadow-md);
+  }
+
+  .gm-story__step-num {
+    font-family: var(--font-display);
+    font-size: var(--text-xs);
+    font-weight: 700;
+    opacity: 0.85;
+  }
+
+  .gm-story__step-label {
+    font-family: var(--font-display);
+    font-size: var(--text-sm);
+    font-weight: 600;
+    line-height: 1.25;
+  }
+
+  /* Tarjeta principal del hito activo */
+  .gm-story__stage {
+    background-color: var(--bg-surface);
+    border: var(--border-width) solid var(--border-color);
+    border-radius: var(--radius-xl);
+    box-shadow: var(--shadow-md);
+    padding: var(--space-6);
+    display: grid;
+    gap: var(--space-6);
+  }
+
+  .gm-story__card {
+    display: grid;
+    gap: var(--space-3);
+  }
+
+  .gm-story__card[hidden] {
+    display: none;
+  }
+
+  .gm-story__pill {
+    display: inline-block;
+    padding: var(--space-1) var(--space-3);
+    border-radius: var(--radius-pill);
+    background-color: var(--brand-pink-soft);
+    color: var(--brand-pink-dark);
+    font-size: var(--text-xs);
+    font-weight: 700;
+  }
+
+  .gm-story__card-title {
+    font-size: var(--text-2xl);
+    color: var(--text-main);
+  }
+
+  .gm-story__card-body {
+    font-size: var(--text-lg);
+    color: var(--text-muted);
+    max-width: 64ch;
+  }
+
+  /* Controles inferiores Anterior / Siguiente */
+  .gm-story__controls {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--space-3);
+    padding-top: var(--space-4);
+    border-top: var(--border-width) solid var(--border-color);
+  }
+
+  .gm-story__nav-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: var(--space-2);
+    min-height: var(--touch-min);
+    padding: var(--space-2) var(--space-4);
+    border-radius: var(--radius-pill);
+    border: var(--border-width) solid var(--border-color);
+    background-color: var(--bg-canvas);
+    color: var(--text-main);
+    font-weight: 700;
+    font-size: var(--text-sm);
+    transition: background-color var(--transition-fast), transform var(--transition-fast);
+  }
+
+  .gm-story__nav-btn:hover {
+    background-color: var(--brand-sky-soft);
+  }
+
+  .gm-story__nav-btn--primary {
+    background-color: var(--cta-primary);
+    color: var(--cta-primary-text);
+  }
+
+  .gm-story__nav-btn--primary:hover {
+    background-color: var(--cta-primary-hover);
+  }
+
+  .gm-story__counter {
+    font-family: var(--font-display);
+    font-weight: 700;
+    font-size: var(--text-sm);
+    color: var(--text-muted);
+  }
+
+  @media (min-width: 768px) {
+    .gm-story__steps {
+      grid-template-columns: repeat(4, 1fr);
+    }
+
+    .gm-story__stage {
+      padding: var(--space-8);
+    }
+  }
+</style>

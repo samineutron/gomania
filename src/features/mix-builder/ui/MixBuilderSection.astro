@@ -1,0 +1,1230 @@
+---
+/**
+ * ============================================================================
+ * QUÉ HACE:
+ * Sección visual principal del módulo `mix-builder` para GoManía SpA.
+ * Guía paso a paso al cliente para armar su bolsa:
+ * 1. Selector de formato fijo (`80g=$1.000/1`, `500g=$6.500/3`, `1kg=$12.000/5`,
+ *    `2kg=$24.000/10`, `3kg=$36.000/15`).
+ * 2. Selector obligatorio de perfil (`Mix Dulce / Ácido` o `Mix Salado`) al
+ *    elegir `500g` o más.
+ * 3. Vista previa modular: `<DoypackPreview />` (solo 80 g) o
+ *    `<KraftBagPreview />` (500 g a 3 kg con chips removibles).
+ * 4. Botón principal "Añadir al carrito" y barra fija inferior en móvil con
+ *    progreso en vivo (`ej. 2/5 sabores · 250g c/u`).
+ *
+ * QUÉ PUEDES EDITAR AQUÍ:
+ * - Títulos y textos de ayuda en el HTML de abajo.
+ * - Los precios y cupos se leen automáticamente desde `BAG_TIERS` en
+ *   `src/shared/config.ts`.
+ * - Todos los colores usan exclusivamente tokens de `src/shared/tokens.css`
+ *   para soportar los 3 temas (`impacto-rosado`, `candy-limpio`, `pop-dual`).
+ *
+ * CON QUÉ MÓDULO CONECTA:
+ * - Se monta en `#armador-mix` de `src/pages/index.astro` (arriba de `#catalogo`).
+ * - Compone `DoypackPreview.astro` y `KraftBagPreview.astro`.
+ * - Ejecuta `initMixBuilderSection()` desde `./mix-builder.client.ts`.
+ * ============================================================================
+ */
+import { BAG_TIERS, formatClp } from '../../../shared/config';
+import DoypackPreview from './DoypackPreview.astro';
+import KraftBagPreview from './KraftBagPreview.astro';
+---
+
+<div id="mix-builder-module" class="gm-mb-wrapper" aria-labelledby="mix-builder-heading">
+  <div class="gm-mb-container">
+    <!-- Encabezado de sección -->
+    <header class="gm-mb-header">
+      <span class="gm-mb-eyebrow">Armador de bolsas</span>
+      <h2 id="mix-builder-heading" class="gm-mb-title">Arma tu bolsa a tu pinta</h2>
+      <p class="gm-mb-subtitle">
+        Elige tu formato y toca los sabores en el catálogo de abajo. Dulces y ácidos se mezclan libremente; salados van en bolsa aparte.
+      </p>
+    </header>
+
+    <!-- Banner de modo edición (visible solo al editar un ítem desde el carrito) -->
+    <div class="gm-mb-edit-banner" data-mb-edit-banner hidden role="status">
+      <div class="gm-mb-edit-banner-copy">
+        <svg
+          viewBox="0 0 24 24"
+          width="18"
+          height="18"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="2.2"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+          aria-hidden="true"
+        >
+          <path d="M12 20h9"></path>
+          <path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4Z"></path>
+        </svg>
+        <span>Modo edición activo: estás modificando una bolsa de tu carrito.</span>
+      </div>
+      <button type="button" class="gm-mb-edit-cancel" data-mb-cancel-edit>
+        Cancelar edición
+      </button>
+    </div>
+
+    <!-- Alerta dinámica (errores de regla/stock o confirmación breve) -->
+    <div class="gm-mb-alert" data-mb-alert hidden role="alert" aria-live="assertive">
+      <span class="gm-mb-alert-text" data-mb-alert-text></span>
+      <button
+        type="button"
+        class="gm-mb-alert-close"
+        aria-label="Cerrar aviso"
+        data-mb-alert-close
+      >
+        <svg
+          viewBox="0 0 24 24"
+          width="16"
+          height="16"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="2.3"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+          aria-hidden="true"
+        >
+          <path d="M18 6 6 18M6 6l12 12"></path>
+        </svg>
+      </button>
+    </div>
+
+    <!-- Tarjeta principal del armador -->
+    <div class="gm-mb-card">
+      <!-- PASO 1: Selector de formato fijo (80 g a 3 kg) -->
+      <section class="gm-mb-step" aria-labelledby="mb-step-tier-label">
+        <div class="gm-mb-step-head">
+          <span class="gm-mb-step-num">1</span>
+          <h3 id="mb-step-tier-label" class="gm-mb-step-title">Elige el tamaño de tu bolsa</h3>
+        </div>
+
+        <div class="gm-mb-tiers-grid" role="group" aria-label="Formatos de bolsa disponibles">
+          {BAG_TIERS.map((tier) => (
+            <button
+              type="button"
+              class={`gm-mb-tier-btn ${tier.id === '80g' ? 'gm-mb-tier-btn--active' : ''}`}
+              data-mb-tier={tier.id}
+              aria-pressed={tier.id === '80g' ? 'true' : 'false'}
+            >
+              <span class="gm-mb-tier-weight">{tier.label}</span>
+              <span class="gm-mb-tier-price">{formatClp(tier.priceClp)}</span>
+              <span class="gm-mb-tier-cap">
+                {tier.maxFlavors === 1
+                  ? '1 sabor exacto'
+                  : `Hasta ${tier.maxFlavors} sabores`}
+              </span>
+            </button>
+          ))}
+        </div>
+      </section>
+
+      <!-- PASO 2 (OBLIGATORIO en 500 g a 3 kg): Selector de perfil Dulce/Ácido vs Salado -->
+      <section
+        class="gm-mb-step gm-mb-profile-step"
+        data-mb-profile-step
+        aria-labelledby="mb-step-profile-label"
+        hidden
+      >
+        <div class="gm-mb-step-head">
+          <span class="gm-mb-step-num">2</span>
+          <h3 id="mb-step-profile-label" class="gm-mb-step-title">
+            Elige el perfil de tu mix <span class="gm-mb-required-tag">Obligatorio</span>
+          </h3>
+        </div>
+
+        <div class="gm-mb-profile-grid" role="group" aria-label="Perfil de mezcla">
+          <button
+            type="button"
+            class="gm-mb-profile-btn"
+            data-mb-profile="dulce-acido"
+            aria-pressed="false"
+          >
+            <span class="gm-mb-profile-icon gm-mb-profile-icon--sweet" aria-hidden="true">
+              <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9Z"></path>
+                <path d="M19 3v4M21 5h-4"></path>
+              </svg>
+            </span>
+            <span class="gm-mb-profile-copy">
+              <strong>Mix Dulce / Ácido</strong>
+              <small>Gomitas dulces, ácidas y maní dulce</small>
+            </span>
+          </button>
+
+          <button
+            type="button"
+            class="gm-mb-profile-btn"
+            data-mb-profile="salado"
+            aria-pressed="false"
+          >
+            <span class="gm-mb-profile-icon gm-mb-profile-icon--salty" aria-hidden="true">
+              <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M12 2v4M4.9 4.9l2.8 2.8M2 12h4M19.1 4.9l-2.8 2.8M22 12h-4"></path>
+                <circle cx="12" cy="14" r="5"></circle>
+              </svg>
+            </span>
+            <span class="gm-mb-profile-copy">
+              <strong>Mix Salado</strong>
+              <small>Solo maní salado (sin mezclar con dulces)</small>
+            </span>
+          </button>
+        </div>
+
+        <p class="gm-mb-profile-hint" data-mb-profile-hint>
+          Paso obligatorio: elige primero si tu bolsa será Dulce / Ácido o Salado.
+        </p>
+      </section>
+
+      <!-- PASO 3: Previsualización visual (Doypack 80g o Bolsa Papel Kraft 500g+) -->
+      <div class="gm-mb-preview-area">
+        <DoypackPreview />
+        <KraftBagPreview />
+      </div>
+
+      <!-- Barra de acción principal dentro de la tarjeta -->
+      <div class="gm-mb-footer-actions">
+        <p class="gm-mb-submit-hint" data-mb-submit-hint data-state="muted">
+          Toca 1 sabor del catálogo para llenar tu bolsita de 80 g.
+        </p>
+
+        <div class="gm-mb-cta-row">
+          <a href="#catalogo" class="gm-mb-secondary-link" data-mb-jump-catalog>
+            <span>Ir a elegir sabores</span>
+            <svg
+              viewBox="0 0 24 24"
+              width="18"
+              height="18"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2.2"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              aria-hidden="true"
+            >
+              <path d="M12 5v14M5 12l7 7 7-7"></path>
+            </svg>
+          </a>
+
+          <button
+            type="button"
+            class="gm-mb-submit-btn"
+            data-mb-submit
+            disabled
+            aria-disabled="true"
+          >
+            <svg
+              viewBox="0 0 24 24"
+              width="20"
+              height="20"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2.2"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              aria-hidden="true"
+            >
+              <circle cx="9" cy="21" r="1"></circle>
+              <circle cx="20" cy="21" r="1"></circle>
+              <path d="M1 1h4l2.7 13.4a2 2 0 0 0 2 1.6h9.7a2 2 0 0 0 2-1.6L23 6H6"></path>
+            </svg>
+            <span data-mb-submit-text>Añadir bolsita de 80 g ($1.000)</span>
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- BARRA FIJA INFERIOR EN MÓVIL (zona del pulgar mientras navega el catálogo) -->
+  <div class="gm-mb-mobile-bar" data-mb-mobile-bar role="region" aria-label="Progreso de tu bolsa">
+    <a href="#armador-mix" class="gm-mb-mobile-summary" aria-label="Ver detalle de tu bolsa">
+      <strong class="gm-mb-mobile-title" data-mb-mobile-title>80 g · $1.000</strong>
+      <span class="gm-mb-mobile-progress" data-mb-mobile-progress>0/1 sabor · Toca un sabor abajo</span>
+    </a>
+
+    <button
+      type="button"
+      class="gm-mb-mobile-cta"
+      data-mb-mobile-submit
+      disabled
+      aria-disabled="true"
+    >
+      <span data-mb-mobile-submit-text>Añadir al carrito</span>
+    </button>
+  </div>
+</div>
+
+<script>
+  import { initMixBuilderSection } from './mix-builder.client';
+
+  // Inicializa el controlador del armador al cargar el documento
+  initMixBuilderSection();
+</script>
+
+<style is:global>
+  /* ==========================================================================
+   * ESTILOS ENCAPSULADOS DEL MÓDULO `mix-builder` (#mix-builder-module)
+   * Usa EXCLUSIVAMENTE tokens de `src/shared/tokens.css` para respetar los 3
+   * temas intercambiables (`impacto-rosado`, `candy-limpio`, `pop-dual`).
+   * ========================================================================== */
+
+  #mix-builder-module.gm-mb-wrapper {
+    background-color: var(--bg-canvas);
+    color: var(--text-main);
+    padding: 2.25rem 1rem 1.5rem;
+  }
+
+  #mix-builder-module .gm-mb-container {
+    width: 100%;
+    max-width: 1200px;
+    margin: 0 auto;
+    display: flex;
+    flex-direction: column;
+    gap: 1.15rem;
+  }
+
+  /* Encabezado */
+  #mix-builder-module .gm-mb-header {
+    display: flex;
+    flex-direction: column;
+    gap: 0.3rem;
+  }
+
+  #mix-builder-module .gm-mb-eyebrow {
+    font-size: 0.8125rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    color: var(--brand-pink);
+  }
+
+  #mix-builder-module .gm-mb-title {
+    margin: 0;
+    font-family: var(--font-heading, 'Fredoka', sans-serif);
+    font-size: clamp(1.75rem, 4vw, 2.35rem);
+    line-height: 1.15;
+    color: var(--text-main);
+  }
+
+  #mix-builder-module .gm-mb-subtitle {
+    margin: 0.15rem 0 0;
+    color: var(--text-muted);
+    font-size: 0.95rem;
+    max-width: 62ch;
+  }
+
+  /* Banner modo edición */
+  #mix-builder-module .gm-mb-edit-banner {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.75rem;
+    padding: 0.85rem 1rem;
+    border-radius: var(--radius-md, 0.75rem);
+    background-color: color-mix(in srgb, var(--brand-sky) 14%, var(--bg-surface));
+    border: 1.5px solid var(--brand-sky);
+    color: var(--text-main);
+    font-size: 0.9rem;
+    font-weight: 600;
+  }
+
+  #mix-builder-module .gm-mb-edit-banner[hidden] {
+    display: none;
+  }
+
+  #mix-builder-module .gm-mb-edit-banner-copy {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+  }
+
+  #mix-builder-module .gm-mb-edit-cancel {
+    min-height: 40px;
+    padding: 0.4rem 0.9rem;
+    border-radius: 999px;
+    border: 1px solid var(--text-main);
+    background-color: var(--bg-surface);
+    color: var(--text-main);
+    font-weight: 700;
+    font-size: 0.84rem;
+    cursor: pointer;
+  }
+
+  #mix-builder-module .gm-mb-edit-cancel:hover {
+    background-color: var(--cta-primary);
+    color: var(--text-on-brand);
+  }
+
+  /* Caja de alertas */
+  #mix-builder-module .gm-mb-alert {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.75rem;
+    padding: 0.85rem 1rem;
+    border-radius: var(--radius-md, 0.75rem);
+    font-size: 0.9rem;
+    font-weight: 600;
+    border: 1px solid transparent;
+  }
+
+  #mix-builder-module .gm-mb-alert[hidden] {
+    display: none;
+  }
+
+  #mix-builder-module .gm-mb-alert--error {
+    background-color: color-mix(in srgb, var(--state-error) 10%, var(--bg-surface));
+    border-color: color-mix(in srgb, var(--state-error) 35%, transparent);
+    color: var(--state-error);
+  }
+
+  #mix-builder-module .gm-mb-alert--warn {
+    background-color: color-mix(in srgb, var(--state-warn) 12%, var(--bg-surface));
+    border-color: color-mix(in srgb, var(--state-warn) 38%, transparent);
+    color: var(--state-warn);
+  }
+
+  #mix-builder-module .gm-mb-alert--success {
+    background-color: color-mix(in srgb, var(--state-success) 12%, var(--bg-surface));
+    border-color: color-mix(in srgb, var(--state-success) 38%, transparent);
+    color: var(--state-success);
+  }
+
+  #mix-builder-module .gm-mb-alert--info {
+    background-color: color-mix(in srgb, var(--brand-sky) 12%, var(--bg-surface));
+    border-color: color-mix(in srgb, var(--brand-sky) 35%, transparent);
+    color: var(--text-main);
+  }
+
+  #mix-builder-module .gm-mb-alert-close {
+    min-width: 36px;
+    min-height: 36px;
+    border: none;
+    border-radius: 999px;
+    background: transparent;
+    color: currentColor;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    flex-shrink: 0;
+  }
+
+  /* Tarjeta principal */
+  #mix-builder-module .gm-mb-card {
+    background-color: var(--bg-surface);
+    border-radius: var(--radius-lg, 1.15rem);
+    border: var(--border-width, 1px) solid var(--border-subtle, rgba(17, 24, 39, 0.1));
+    box-shadow: var(--shadow-sm, 0 4px 16px rgba(17, 24, 39, 0.06));
+    padding: 1.15rem;
+    display: flex;
+    flex-direction: column;
+    gap: 1.35rem;
+  }
+
+  @media (min-width: 768px) {
+    #mix-builder-module .gm-mb-card {
+      padding: 1.6rem;
+    }
+  }
+
+  /* Pasos numerados */
+  #mix-builder-module .gm-mb-step {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+  }
+
+  #mix-builder-module .gm-mb-step[hidden] {
+    display: none;
+  }
+
+  #mix-builder-module .gm-mb-step-head {
+    display: flex;
+    align-items: center;
+    gap: 0.55rem;
+  }
+
+  #mix-builder-module .gm-mb-step-num {
+    width: 28px;
+    height: 28px;
+    border-radius: 999px;
+    background-color: var(--brand-pink);
+    color: var(--text-on-brand);
+    font-family: var(--font-heading, 'Fredoka', sans-serif);
+    font-weight: 700;
+    font-size: 0.9rem;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+  }
+
+  #mix-builder-module .gm-mb-step-title {
+    margin: 0;
+    font-family: var(--font-heading, 'Fredoka', sans-serif);
+    font-size: 1.12rem;
+    color: var(--text-main);
+    display: inline-flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.45rem;
+  }
+
+  #mix-builder-module .gm-mb-required-tag {
+    font-family: inherit;
+    font-size: 0.72rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    padding: 0.18rem 0.55rem;
+    border-radius: 999px;
+    background-color: color-mix(in srgb, var(--brand-pink) 14%, var(--bg-surface));
+    color: var(--brand-pink);
+  }
+
+  /* Grid de tramos (mobile-first, 2 col en celular, 5 col en desktop) */
+  #mix-builder-module .gm-mb-tiers-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 0.65rem;
+  }
+
+  @media (min-width: 640px) {
+    #mix-builder-module .gm-mb-tiers-grid {
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+    }
+  }
+
+  @media (min-width: 960px) {
+    #mix-builder-module .gm-mb-tiers-grid {
+      grid-template-columns: repeat(5, minmax(0, 1fr));
+    }
+  }
+
+  #mix-builder-module .gm-mb-tier-btn {
+    min-height: 78px;
+    padding: 0.75rem 0.7rem;
+    border-radius: var(--radius-md, 0.85rem);
+    border: 2px solid var(--border-subtle, rgba(17, 24, 39, 0.12));
+    background-color: var(--bg-canvas);
+    color: var(--text-main);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    gap: 0.15rem;
+    cursor: pointer;
+    font-family: inherit;
+    transition: border-color 0.18s ease, background-color 0.18s ease, transform 0.12s ease, box-shadow 0.18s ease;
+  }
+
+  #mix-builder-module .gm-mb-tier-btn:hover {
+    border-color: var(--brand-sky);
+    transform: translateY(-2px);
+  }
+
+  #mix-builder-module .gm-mb-tier-btn--active {
+    background-color: var(--brand-pink);
+    border-color: var(--brand-pink);
+    color: var(--text-on-brand);
+    box-shadow: 0 6px 16px color-mix(in srgb, var(--brand-pink) 30%, transparent);
+  }
+
+  #mix-builder-module .gm-mb-tier-weight {
+    font-family: var(--font-heading, 'Fredoka', sans-serif);
+    font-size: 1.2rem;
+    font-weight: 700;
+    line-height: 1.15;
+  }
+
+  #mix-builder-module .gm-mb-tier-price {
+    font-size: 0.92rem;
+    font-weight: 700;
+  }
+
+  #mix-builder-module .gm-mb-tier-cap {
+    font-size: 0.75rem;
+    opacity: 0.86;
+  }
+
+  /* Paso 2: Selector de perfil */
+  #mix-builder-module .gm-mb-profile-step {
+    padding: 1rem;
+    border-radius: var(--radius-md, 0.85rem);
+    background-color: var(--bg-canvas);
+    border: 1.5px solid var(--border-subtle, rgba(17, 24, 39, 0.1));
+  }
+
+  #mix-builder-module .gm-mb-profile-step--pending {
+    border-color: var(--brand-pink);
+    background-color: color-mix(in srgb, var(--brand-pink) 6%, var(--bg-canvas));
+  }
+
+  #mix-builder-module .gm-mb-profile-grid {
+    display: grid;
+    grid-template-columns: repeat(1, minmax(0, 1fr));
+    gap: 0.65rem;
+  }
+
+  @media (min-width: 640px) {
+    #mix-builder-module .gm-mb-profile-grid {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+  }
+
+  #mix-builder-module .gm-mb-profile-btn {
+    min-height: 64px;
+    padding: 0.8rem 1rem;
+    border-radius: var(--radius-md, 0.8rem);
+    border: 2px solid var(--border-subtle, rgba(17, 24, 39, 0.14));
+    background-color: var(--bg-surface);
+    color: var(--text-main);
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    text-align: left;
+    cursor: pointer;
+    font-family: inherit;
+    transition: border-color 0.18s ease, box-shadow 0.18s ease, transform 0.12s ease;
+  }
+
+  #mix-builder-module .gm-mb-profile-btn:hover {
+    border-color: var(--brand-sky);
+  }
+
+  #mix-builder-module .gm-mb-profile-btn--active {
+    border-color: var(--cta-primary);
+    box-shadow: 0 0 0 3px color-mix(in srgb, var(--brand-sky) 28%, transparent);
+  }
+
+  #mix-builder-module .gm-mb-profile-icon {
+    width: 42px;
+    height: 42px;
+    border-radius: 12px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+  }
+
+  #mix-builder-module .gm-mb-profile-icon--sweet {
+    background-color: color-mix(in srgb, var(--brand-pink) 16%, var(--bg-surface));
+    color: var(--brand-pink);
+  }
+
+  #mix-builder-module .gm-mb-profile-icon--salty {
+    background-color: color-mix(in srgb, var(--kraft-bag) 28%, var(--bg-surface));
+    color: var(--text-main);
+  }
+
+  #mix-builder-module .gm-mb-profile-copy {
+    display: flex;
+    flex-direction: column;
+    gap: 0.1rem;
+  }
+
+  #mix-builder-module .gm-mb-profile-copy strong {
+    font-size: 0.98rem;
+  }
+
+  #mix-builder-module .gm-mb-profile-copy small {
+    font-size: 0.8rem;
+    color: var(--text-muted);
+  }
+
+  #mix-builder-module .gm-mb-profile-hint {
+    margin: 0;
+    font-size: 0.84rem;
+    color: var(--text-muted);
+    font-weight: 600;
+  }
+
+  /* ==========================================================================
+   * ÁREA DE PREVISUALIZACIÓN (DOYPACK 80g & KRAFT 500g-3kg)
+   * ========================================================================== */
+  #mix-builder-module .gm-mb-preview-panel {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 1.25rem;
+    align-items: center;
+    padding: 1rem;
+    border-radius: var(--radius-md, 0.9rem);
+    background-color: var(--bg-canvas);
+    border: 1px solid var(--border-subtle, rgba(17, 24, 39, 0.08));
+  }
+
+  #mix-builder-module .gm-mb-preview-panel[hidden] {
+    display: none;
+  }
+
+  @media (min-width: 768px) {
+    #mix-builder-module .gm-mb-preview-panel {
+      grid-template-columns: 240px 1fr;
+      padding: 1.25rem 1.5rem;
+    }
+  }
+
+  /* --- DOYPACK 80g --- */
+  #mix-builder-module .gm-doypack-stage {
+    display: flex;
+    justify-content: center;
+  }
+
+  #mix-builder-module .gm-doypack-pouch {
+    position: relative;
+    width: 210px;
+    aspect-ratio: 260 / 340;
+    filter: drop-shadow(0 10px 18px rgba(17, 24, 39, 0.14));
+  }
+
+  #mix-builder-module .gm-doypack-shell-svg,
+  #mix-builder-module .gm-doypack-shell-img {
+    position: relative;
+    z-index: 2;
+    width: 100%;
+    height: 100%;
+    display: block;
+    pointer-events: none;
+  }
+
+  /* Ventana central transparente alineada detrás de la máscara del Doypack */
+  #mix-builder-module .gm-doypack-window {
+    position: absolute;
+    z-index: 1;
+    left: 17.7%;
+    top: 35.9%;
+    width: 64.6%;
+    height: 41.8%;
+    border-radius: 26px;
+    background-color: var(--bg-surface);
+    overflow: hidden;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: inset 0 4px 12px rgba(17, 24, 39, 0.14);
+  }
+
+  #mix-builder-module .gm-doypack-product-img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+  }
+
+  #mix-builder-module .gm-doypack-product-img[hidden] {
+    display: none;
+  }
+
+  #mix-builder-module .gm-doypack-window-empty {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 0.3rem;
+    padding: 0.6rem;
+    text-align: center;
+    color: var(--text-muted);
+    font-size: 0.78rem;
+    font-weight: 700;
+  }
+
+  #mix-builder-module .gm-doypack-window-empty[hidden] {
+    display: none;
+  }
+
+  /* Calcomanía (`imgCalcomania`) en esquina superior izquierda del Doypack */
+  #mix-builder-module .gm-doypack-sticker-slot {
+    position: absolute;
+    z-index: 3;
+    top: 15%;
+    left: 11%;
+    width: 31%;
+    aspect-ratio: 1 / 1;
+    border-radius: 999px;
+    background-color: var(--bg-surface);
+    border: 2.5px solid #FFFFFF;
+    box-shadow: 0 4px 10px rgba(17, 24, 39, 0.18);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+    transform: rotate(-7deg);
+  }
+
+  #mix-builder-module .gm-doypack-sticker-img {
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+    padding: 4px;
+    display: block;
+  }
+
+  #mix-builder-module .gm-doypack-sticker-img[hidden] {
+    display: none;
+  }
+
+  #mix-builder-module .gm-doypack-sticker-placeholder {
+    font-size: 0.68rem;
+    font-weight: 700;
+    color: var(--brand-pink);
+    text-transform: uppercase;
+  }
+
+  #mix-builder-module .gm-doypack-sticker-placeholder[hidden] {
+    display: none;
+  }
+
+  #mix-builder-module .gm-doypack-info {
+    display: flex;
+    flex-direction: column;
+    gap: 0.55rem;
+    align-items: flex-start;
+  }
+
+  #mix-builder-module .gm-doypack-meta,
+  #mix-builder-module .gm-kraft-top-row {
+    width: 100%;
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.5rem;
+  }
+
+  #mix-builder-module .gm-doypack-flavor-name {
+    margin: 0.15rem 0 0;
+    font-family: var(--font-heading, 'Fredoka', sans-serif);
+    font-size: 1.4rem;
+    line-height: 1.2;
+    color: var(--text-main);
+  }
+
+  #mix-builder-module .gm-doypack-hint {
+    margin: 0;
+    font-size: 0.92rem;
+    color: var(--text-muted);
+    max-width: 48ch;
+  }
+
+  /* --- BOLSA KRAFT (500g a 3kg) --- */
+  #mix-builder-module .gm-kraft-stage {
+    display: flex;
+    justify-content: center;
+  }
+
+  #mix-builder-module .gm-kraft-svg {
+    width: 190px;
+    height: auto;
+    display: block;
+  }
+
+  #mix-builder-module .gm-kraft-details {
+    display: flex;
+    flex-direction: column;
+    gap: 0.85rem;
+    width: 100%;
+  }
+
+  #mix-builder-module .gm-kraft-badges {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.4rem;
+  }
+
+  #mix-builder-module .gm-mb-pill {
+    display: inline-flex;
+    align-items: center;
+    padding: 0.25rem 0.65rem;
+    border-radius: 999px;
+    font-size: 0.78rem;
+    font-weight: 700;
+  }
+
+  #mix-builder-module .gm-mb-pill--pink {
+    background-color: color-mix(in srgb, var(--brand-pink) 14%, var(--bg-surface));
+    color: var(--brand-pink);
+  }
+
+  #mix-builder-module .gm-mb-pill--kraft {
+    background-color: color-mix(in srgb, var(--kraft-bag) 28%, var(--bg-surface));
+    color: var(--text-main);
+  }
+
+  #mix-builder-module .gm-mb-pill--profile {
+    background-color: color-mix(in srgb, var(--brand-sky) 16%, var(--bg-surface));
+    color: var(--text-main);
+  }
+
+  #mix-builder-module .gm-mb-pill--profile[data-profile='pending'] {
+    background-color: color-mix(in srgb, var(--state-warn) 14%, var(--bg-surface));
+    color: var(--state-warn);
+  }
+
+  #mix-builder-module .gm-mb-price-tag {
+    font-family: var(--font-heading, 'Fredoka', sans-serif);
+    font-size: 1.35rem;
+    font-weight: 700;
+    color: var(--text-main);
+  }
+
+  /* Barra de progreso Kraft */
+  #mix-builder-module .gm-kraft-progress {
+    display: flex;
+    flex-direction: column;
+    gap: 0.35rem;
+  }
+
+  #mix-builder-module .gm-kraft-progress-header {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: space-between;
+    gap: 0.4rem;
+    font-size: 0.86rem;
+  }
+
+  #mix-builder-module .gm-kraft-progress-header span {
+    color: var(--text-muted);
+    font-weight: 600;
+  }
+
+  #mix-builder-module .gm-kraft-progress-track {
+    width: 100%;
+    height: 10px;
+    border-radius: 999px;
+    background-color: var(--bg-surface);
+    border: 1px solid var(--border-subtle, rgba(17, 24, 39, 0.1));
+    overflow: hidden;
+  }
+
+  #mix-builder-module .gm-kraft-progress-fill {
+    height: 100%;
+    border-radius: 999px;
+    background-color: var(--brand-pink);
+    transition: width 0.25s ease;
+  }
+
+  /* Chips removibles */
+  #mix-builder-module .gm-kraft-chips-wrap {
+    display: flex;
+    flex-direction: column;
+    gap: 0.65rem;
+    align-items: flex-start;
+  }
+
+  #mix-builder-module .gm-kraft-chips-empty {
+    width: 100%;
+    padding: 0.85rem 1rem;
+    border-radius: var(--radius-md, 0.75rem);
+    background-color: var(--bg-surface);
+    border: 1px dashed var(--border-subtle, rgba(17, 24, 39, 0.22));
+    font-size: 0.88rem;
+    color: var(--text-muted);
+  }
+
+  #mix-builder-module .gm-kraft-chips-empty p {
+    margin: 0;
+  }
+
+  #mix-builder-module .gm-kraft-chips-empty[hidden] {
+    display: none;
+  }
+
+  #mix-builder-module .gm-kraft-chips-list {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    width: 100%;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+  }
+
+  #mix-builder-module .gm-kraft-chips-list[hidden] {
+    display: none;
+  }
+
+  #mix-builder-module .gm-kraft-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.35rem 0.45rem;
+    border-radius: 999px;
+    background-color: var(--bg-surface);
+    border: 1.5px solid var(--border-subtle, rgba(17, 24, 39, 0.14));
+    box-shadow: 0 2px 6px rgba(17, 24, 39, 0.04);
+  }
+
+  #mix-builder-module .gm-kraft-chip--warn {
+    border-color: var(--state-error);
+    background-color: color-mix(in srgb, var(--state-error) 8%, var(--bg-surface));
+  }
+
+  #mix-builder-module .gm-kraft-chip-img {
+    width: 28px;
+    height: 28px;
+    border-radius: 999px;
+    object-fit: contain;
+    background-color: var(--bg-canvas);
+    flex-shrink: 0;
+  }
+
+  #mix-builder-module .gm-kraft-chip-text {
+    display: flex;
+    flex-direction: column;
+    line-height: 1.15;
+  }
+
+  #mix-builder-module .gm-kraft-chip-name {
+    font-size: 0.82rem;
+    font-weight: 700;
+    color: var(--text-main);
+  }
+
+  #mix-builder-module .gm-kraft-chip-grams {
+    font-size: 0.72rem;
+    font-weight: 600;
+    color: var(--text-muted);
+  }
+
+  #mix-builder-module .gm-kraft-chip--warn .gm-kraft-chip-grams {
+    color: var(--state-error);
+  }
+
+  #mix-builder-module .gm-kraft-chip-remove {
+    width: 32px;
+    height: 32px;
+    border-radius: 999px;
+    border: none;
+    background-color: var(--bg-canvas);
+    color: var(--text-main);
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: background-color 0.15s ease, color 0.15s ease;
+  }
+
+  #mix-builder-module .gm-kraft-chip-remove:hover {
+    background-color: var(--state-error);
+    color: var(--text-on-brand);
+  }
+
+  /* Botón secundario fantasma (Quitar / Vaciar) */
+  #mix-builder-module .gm-mb-ghost-btn {
+    min-height: 40px;
+    padding: 0.4rem 0.85rem;
+    border-radius: 999px;
+    border: 1px solid var(--border-subtle, rgba(17, 24, 39, 0.18));
+    background-color: var(--bg-surface);
+    color: var(--text-muted);
+    font-family: inherit;
+    font-size: 0.84rem;
+    font-weight: 700;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    cursor: pointer;
+  }
+
+  #mix-builder-module .gm-mb-ghost-btn[hidden] {
+    display: none;
+  }
+
+  #mix-builder-module .gm-mb-ghost-btn:hover {
+    color: var(--state-error);
+    border-color: var(--state-error);
+  }
+
+  /* Acciones finales de la tarjeta */
+  #mix-builder-module .gm-mb-footer-actions {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+    border-top: 1px solid var(--border-subtle, rgba(17, 24, 39, 0.1));
+    padding-top: 1rem;
+  }
+
+  #mix-builder-module .gm-mb-submit-hint {
+    margin: 0;
+    font-size: 0.88rem;
+    font-weight: 600;
+    color: var(--text-muted);
+  }
+
+  #mix-builder-module .gm-mb-submit-hint[data-state='error'] {
+    color: var(--state-error);
+  }
+
+  #mix-builder-module .gm-mb-submit-hint[data-state='success'] {
+    color: var(--state-success);
+  }
+
+  #mix-builder-module .gm-mb-submit-hint[data-state='ready'] {
+    color: var(--text-main);
+  }
+
+  #mix-builder-module .gm-mb-cta-row {
+    display: flex;
+    flex-direction: column;
+    gap: 0.65rem;
+  }
+
+  @media (min-width: 640px) {
+    #mix-builder-module .gm-mb-cta-row {
+      flex-direction: row;
+      align-items: center;
+      justify-content: space-between;
+    }
+  }
+
+  #mix-builder-module .gm-mb-secondary-link {
+    min-height: 46px;
+    padding: 0.65rem 1.15rem;
+    border-radius: var(--radius-md, 0.75rem);
+    border: 1.5px solid var(--border-subtle, rgba(17, 24, 39, 0.18));
+    background-color: var(--bg-canvas);
+    color: var(--text-main);
+    text-decoration: none;
+    font-weight: 700;
+    font-size: 0.92rem;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.45rem;
+    transition: border-color 0.18s ease, color 0.18s ease;
+  }
+
+  #mix-builder-module .gm-mb-secondary-link[hidden] {
+    display: none;
+  }
+
+  #mix-builder-module .gm-mb-secondary-link:hover {
+    border-color: var(--brand-pink);
+    color: var(--brand-pink);
+  }
+
+  #mix-builder-module .gm-mb-submit-btn {
+    min-height: 48px;
+    padding: 0.75rem 1.45rem;
+    border-radius: var(--radius-md, 0.75rem);
+    border: none;
+    background-color: var(--cta-primary);
+    color: var(--text-on-brand);
+    font-family: inherit;
+    font-weight: 700;
+    font-size: 0.96rem;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    cursor: pointer;
+    transition: background-color 0.18s ease, transform 0.12s ease;
+  }
+
+  #mix-builder-module .gm-mb-submit-btn:hover:not(:disabled) {
+    background-color: var(--brand-sky);
+  }
+
+  #mix-builder-module .gm-mb-submit-btn:disabled {
+    background-color: var(--bg-canvas);
+    color: var(--text-muted);
+    border: 1px solid var(--border-subtle, rgba(17, 24, 39, 0.14));
+    cursor: not-allowed;
+  }
+
+  #mix-builder-module .gm-mb-submit--confirmed {
+    background-color: var(--state-success) !important;
+    color: var(--text-on-brand) !important;
+  }
+
+  /* ==========================================================================
+   * BARRA FIJA INFERIOR EN MÓVIL (< 1024px)
+   * Siempre visible en la zona del pulgar mientras elige sabores en el catálogo.
+   * ========================================================================== */
+  #mix-builder-module .gm-mb-mobile-bar {
+    position: fixed;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    z-index: 45;
+    background-color: var(--bg-surface);
+    border-top: 2px solid var(--brand-pink);
+    box-shadow: 0 -6px 20px rgba(17, 24, 39, 0.12);
+    padding: 0.65rem 0.9rem calc(0.65rem + env(safe-area-inset-bottom, 0px));
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.75rem;
+  }
+
+  #mix-builder-module .gm-mb-mobile-summary {
+    display: flex;
+    flex-direction: column;
+    gap: 0.1rem;
+    text-decoration: none;
+    color: var(--text-main);
+    min-width: 0;
+    flex: 1;
+  }
+
+  #mix-builder-module .gm-mb-mobile-title {
+    font-family: var(--font-heading, 'Fredoka', sans-serif);
+    font-size: 0.96rem;
+    line-height: 1.15;
+    color: var(--text-main);
+  }
+
+  #mix-builder-module .gm-mb-mobile-progress {
+    font-size: 0.78rem;
+    font-weight: 600;
+    color: var(--text-muted);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  #mix-builder-module .gm-mb-mobile-cta {
+    min-height: 44px;
+    padding: 0.55rem 1rem;
+    border-radius: var(--radius-md, 0.75rem);
+    border: none;
+    background-color: var(--cta-primary);
+    color: var(--text-on-brand);
+    font-family: inherit;
+    font-weight: 700;
+    font-size: 0.88rem;
+    white-space: nowrap;
+    cursor: pointer;
+    flex-shrink: 0;
+    transition: background-color 0.18s ease;
+  }
+
+  #mix-builder-module .gm-mb-mobile-cta:hover:not(:disabled) {
+    background-color: var(--brand-sky);
+  }
+
+  #mix-builder-module .gm-mb-mobile-cta:disabled {
+    background-color: var(--bg-canvas);
+    color: var(--text-muted);
+    border: 1px solid var(--border-subtle, rgba(17, 24, 39, 0.14));
+    cursor: not-allowed;
+  }
+
+  /* En pantallas grandes ocultamos la barra fija inferior móvil */
+  @media (min-width: 1024px) {
+    #mix-builder-module .gm-mb-mobile-bar {
+      display: none;
+    }
+  }
+
+  /* Espacio inferior en el body en móvil para que la barra fija no tape el footer */
+  @media (max-width: 1023px) {
+    body {
+      padding-bottom: 76px;
+    }
+  }
+</style>

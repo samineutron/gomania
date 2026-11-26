@@ -1,0 +1,306 @@
+---
+/**
+ * ============================================================================
+ * QUÉ HACE:
+ * Pie de página global (Footer) de GoManía SpA:
+ * - Logo horizontal a color (con fallback SVG a color, nunca B/N).
+ * - Enlaces rápidos de navegación interna.
+ * - Iconos SVG inline accesibles para TikTok, Instagram y Facebook leídos
+ *   desde `src/shared/config.ts`.
+ * - Vista 100% pública (sin enlaces de administración).
+ *
+ * QUÉ PUEDES EDITAR AQUÍ:
+ * - Actualiza las URLs reales de TikTok, Instagram y Facebook en
+ *   `SOCIAL_LINKS` dentro de `src/shared/config.ts`.
+ * - Los colores responden automáticamente a `data-theme` en `tokens.css`.
+ *
+ * CON QUÉ MÓDULO CONECTA:
+ * - Lee `BRAND_CONFIG` y `SOCIAL_LINKS` desde `src/shared/config.ts`.
+ * - Usa `NAV_ITEMS` desde `../logic/landing-helpers.ts`.
+ * ============================================================================
+ */
+import { BRAND_CONFIG, SOCIAL_LINKS } from '../../../shared/config';
+import { NAV_ITEMS } from '../logic/landing-helpers';
+
+const currentYear = new Date().getFullYear();
+---
+
+<footer class="gm-footer" data-landing-footer>
+  <div class="gm-container gm-footer__grid">
+    <!-- Columna 1: Identidad de marca a color -->
+    <div class="gm-footer__brand-col">
+      <a href="#inicio" class="gm-footer__brand" aria-label={`Volver al inicio de ${BRAND_CONFIG.name}`}>
+        <img
+          src={BRAND_CONFIG.logoHorizontalUrl}
+          alt={BRAND_CONFIG.name}
+          class="gm-footer__logo-img"
+          width="172"
+          height="42"
+          loading="lazy"
+          decoding="async"
+          data-footer-logo-img
+        />
+        <!-- Fallback a color mientras no exista el PNG definitivo -->
+        <span class="gm-footer__logo-fallback" data-footer-logo-fallback aria-hidden="true">
+          <svg
+            width="168"
+            height="42"
+            viewBox="0 0 168 42"
+            fill="none"
+            xmlns="http://www.w3.org/2000/svg"
+            role="img"
+          >
+            <rect x="1" y="2" width="38" height="38" rx="12" fill="#FFFFFF" stroke="#28AAE1" stroke-width="2" />
+            <circle cx="31" cy="10" r="5" fill="#28AAE1" />
+            <text
+              x="20"
+              y="26"
+              text-anchor="middle"
+              font-family="Fredoka, sans-serif"
+              font-weight="700"
+              font-size="13"
+              fill="#F44870"
+            >G&amp;M</text>
+            <text
+              x="48"
+              y="24"
+              font-family="Fredoka, sans-serif"
+              font-weight="700"
+              font-size="20"
+              fill="#FFFFFF"
+            >GoManía</text>
+            <text
+              x="49"
+              y="36"
+              font-family="Plus Jakarta Sans, sans-serif"
+              font-weight="700"
+              font-size="8.5"
+              letter-spacing="0.8"
+              fill="#E6F7FE"
+            >MÁS DE 100 SABORES</text>
+          </svg>
+        </span>
+      </a>
+      <p class="gm-footer__desc">
+        {BRAND_CONFIG.tagline}. Bolsas armadas a tu gusto con gomitas y maní,
+        despachadas a todo Chile por Blue Express.
+      </p>
+    </div>
+
+    <!-- Columna 2: Enlaces rápidos -->
+    <nav class="gm-footer__nav" aria-label="Enlaces del pie de página">
+      <h3 class="gm-footer__heading">Navegación</h3>
+      <ul class="gm-footer__links">
+        {NAV_ITEMS.map((item) => (
+          <li>
+            <a href={item.href} class="gm-footer__link">{item.label}</a>
+          </li>
+        ))}
+      </ul>
+    </nav>
+
+    <!-- Columna 3: Redes sociales (SVG inline: TikTok, Instagram, Facebook) -->
+    <div class="gm-footer__social-col">
+      <h3 class="gm-footer__heading">Síguenos</h3>
+      <div class="gm-footer__socials">
+        <!-- TikTok -->
+        <a
+          href={SOCIAL_LINKS.tiktok}
+          target="_blank"
+          rel="noopener noreferrer"
+          class="gm-footer__social-btn"
+          aria-label="TikTok de GoManía"
+        >
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+            <path d="M19.6 6.7a4.9 4.9 0 0 1-3.9-4.5V2h-3.4v13.2a2.9 2.9 0 1 1-2-2.8V8.9a6.3 6.3 0 1 0 5.4 6.2V8.7a8.2 8.2 0 0 0 4.8 1.5V6.8c-.3 0-.6 0-.9-.1Z" />
+          </svg>
+          <span>TikTok</span>
+        </a>
+
+        <!-- Instagram -->
+        <a
+          href={SOCIAL_LINKS.instagram}
+          target="_blank"
+          rel="noopener noreferrer"
+          class="gm-footer__social-btn"
+          aria-label="Instagram de GoManía"
+        >
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <rect x="3" y="3" width="18" height="18" rx="5" />
+            <circle cx="12" cy="12" r="4" />
+            <circle cx="17.5" cy="6.5" r="1" fill="currentColor" stroke="none" />
+          </svg>
+          <span>Instagram</span>
+        </a>
+
+        <!-- Facebook -->
+        <a
+          href={SOCIAL_LINKS.facebook}
+          target="_blank"
+          rel="noopener noreferrer"
+          class="gm-footer__social-btn"
+          aria-label="Facebook de GoManía"
+        >
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+            <path d="M13.5 21v-8.2h2.8l.4-3.2h-3.2V7.6c0-.9.3-1.6 1.6-1.6h1.7V3.1c-.3 0-1.3-.1-2.5-.1-2.5 0-4.1 1.5-4.1 4.2v2.4H7.5v3.2h2.7V21h3.3Z" />
+          </svg>
+          <span>Facebook</span>
+        </a>
+      </div>
+    </div>
+  </div>
+
+  <div class="gm-container gm-footer__bottom">
+    <p>© {currentYear} {BRAND_CONFIG.name}. Todos los derechos reservados.</p>
+  </div>
+</footer>
+
+<script>
+  /**
+   * Fallback automático del logo a color en el Footer mientras no exista
+   * el PNG definitivo en `public/images/brand/logo-horizontal-color.png`.
+   */
+  const footerRoot = document.querySelector<HTMLElement>('[data-landing-footer]');
+
+  if (footerRoot) {
+    const img = footerRoot.querySelector<HTMLImageElement>('[data-footer-logo-img]');
+    const fallback = footerRoot.querySelector<HTMLElement>('[data-footer-logo-fallback]');
+
+    if (img && fallback) {
+      const showFallback = (): void => {
+        img.hidden = true;
+        fallback.hidden = false;
+      };
+      const showImg = (): void => {
+        img.hidden = false;
+        fallback.hidden = true;
+      };
+
+      if (img.complete) {
+        if (img.naturalWidth > 0) showImg();
+        else showFallback();
+      } else {
+        img.addEventListener('load', showImg, { once: true });
+        img.addEventListener('error', showFallback, { once: true });
+      }
+    }
+  }
+</script>
+
+<style>
+  /* Usamos --bg-footer y --cta-primary-text (#FFFFFF en los 3 temas) para asegurar contraste AA+ */
+  .gm-footer {
+    background-color: var(--bg-footer);
+    color: var(--cta-primary-text);
+    padding-top: var(--space-12);
+    padding-bottom: var(--space-8);
+    border-top: var(--border-width) solid var(--border-color);
+  }
+
+  .gm-footer__grid {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: var(--space-8);
+    padding-bottom: var(--space-8);
+    border-bottom: 1px solid rgba(255, 255, 255, 0.22);
+  }
+
+  .gm-footer__brand-col {
+    display: grid;
+    gap: var(--space-3);
+    justify-items: start;
+  }
+
+  .gm-footer__brand {
+    display: inline-flex;
+    align-items: center;
+    min-height: var(--touch-min);
+  }
+
+  .gm-footer__logo-img {
+    height: 42px;
+    width: auto;
+    object-fit: contain;
+  }
+
+  .gm-footer__logo-img[hidden],
+  .gm-footer__logo-fallback[hidden] {
+    display: none;
+  }
+
+  .gm-footer__desc {
+    max-width: 38ch;
+    font-size: var(--text-sm);
+    opacity: 0.92;
+  }
+
+  .gm-footer__heading {
+    font-size: var(--text-lg);
+    margin-bottom: var(--space-3);
+  }
+
+  .gm-footer__links {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: grid;
+    gap: var(--space-1);
+  }
+
+  .gm-footer__link {
+    display: inline-flex;
+    align-items: center;
+    min-height: var(--touch-min);
+    font-size: var(--text-sm);
+    font-weight: 600;
+    opacity: 0.92;
+    transition: opacity var(--transition-fast);
+  }
+
+  .gm-footer__link:hover {
+    opacity: 1;
+    text-decoration: underline;
+    text-underline-offset: 4px;
+  }
+
+  .gm-footer__socials {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-2);
+  }
+
+  .gm-footer__social-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--space-2);
+    min-height: var(--touch-min);
+    padding: var(--space-2) var(--space-4);
+    border-radius: var(--radius-pill);
+    background-color: var(--bg-surface);
+    color: var(--text-main);
+    border: var(--border-width) solid var(--border-color);
+    font-size: var(--text-sm);
+    font-weight: 700;
+    box-shadow: var(--shadow-sm);
+    transition: background-color var(--transition-fast), transform var(--transition-fast);
+  }
+
+  .gm-footer__social-btn:hover {
+    background-color: var(--brand-sky-soft);
+    transform: translateY(-1px);
+  }
+
+  .gm-footer__bottom {
+    padding-top: var(--space-5);
+    font-size: var(--text-xs);
+    opacity: 0.88;
+    text-align: center;
+  }
+
+  @media (min-width: 768px) {
+    .gm-footer__grid {
+      grid-template-columns: 1.3fr 0.8fr 1fr;
+      align-items: start;
+    }
+  }
+</style>

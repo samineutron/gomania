@@ -1,0 +1,82 @@
+---
+/**
+ * ============================================================================
+ * QUÉ HACE:
+ * Plantilla HTML base para todas las páginas de GoManía SpA. Carga el tema
+ * visual activo (`data-theme`), fuentes de Google (`Fredoka` y
+ * `Plus Jakarta Sans`), tokens CSS globales, favicon a color `G&M` y
+ * metadatos SEO / Open Graph para compartir en WhatsApp, TikTok e Instagram.
+ *
+ * QUÉ PUEDES EDITAR AQUÍ:
+ * - Cambia `theme` por defecto en `src/shared/config.ts` o pásalo como prop
+ *   (`impacto-rosado`, `candy-limpio` o `pop-dual`).
+ * - Actualiza las rutas del favicon (`favicon-gm.svg`) e imagen Open Graph
+ *   (`og-gomania-color.png`) cuando subas tus archivos definitivos a
+ *   `public/images/brand/`.
+ *
+ * CON QUÉ MÓDULO CONECTA:
+ * - Importa `src/shared/tokens.css` y `src/shared/config.ts`.
+ * - Envuelve el contenido de `src/pages/index.astro`.
+ * ============================================================================
+ */
+import '../shared/tokens.css';
+import { BRAND_CONFIG, DEFAULT_THEME } from '../shared/config';
+import type { ThemeId } from '../contracts/landing-shell.contract';
+
+interface Props {
+  title?: string;
+  description?: string;
+  theme?: ThemeId;
+}
+
+const {
+  title = `${BRAND_CONFIG.shortName} | ${BRAND_CONFIG.tagline} — Gomitas y Maní por Gramos`,
+  description = BRAND_CONFIG.description,
+  theme = DEFAULT_THEME,
+} = Astro.props;
+
+// URL absoluta de la imagen Open Graph para vistas previas en redes sociales.
+const ogImageAbsolute = new URL(BRAND_CONFIG.ogImageUrl, BRAND_CONFIG.siteUrl).toString();
+---
+
+<!doctype html>
+<html lang="es-CL" data-theme={theme}>
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="description" content={description} />
+    <meta name="theme-color" content="#F44870" />
+
+    <title>{title}</title>
+
+    <!-- Favicon placeholder para el isotipo a color G&M (nunca usar versión B/N) -->
+    <link rel="icon" type="image/svg+xml" href={BRAND_CONFIG.faviconUrl} />
+
+    <!-- Metadatos Open Graph (WhatsApp, Instagram, Facebook, TikTok) -->
+    <meta property="og:type" content="website" />
+    <meta property="og:locale" content="es_CL" />
+    <meta property="og:site_name" content={BRAND_CONFIG.name} />
+    <meta property="og:title" content={title} />
+    <meta property="og:description" content={description} />
+    <meta property="og:url" content={BRAND_CONFIG.siteUrl} />
+    <meta property="og:image" content={ogImageAbsolute} />
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content={title} />
+    <meta name="twitter:description" content={description} />
+    <meta name="twitter:image" content={ogImageAbsolute} />
+
+    <!-- Google Fonts: Fredoka (títulos juguetones) + Plus Jakarta Sans (lectura limpia) -->
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Fredoka:wght@500;600;700&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap"
+      rel="stylesheet"
+    />
+  </head>
+  <body>
+    <!-- Enlace accesible para saltar directo al contenido principal con teclado -->
+    <a class="sr-only" href="#contenido-principal">Saltar al contenido principal</a>
+
+    <slot />
+  </body>
+</html>

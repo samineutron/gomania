@@ -1,0 +1,204 @@
+---
+/**
+ * ============================================================================
+ * QUÉ HACE:
+ * Vista previa dinámica EXCLUSIVA para el formato de **80 g** (bolsa Doypack).
+ * Renderiza un paquete Doypack placeholder fácil de reemplazar por tu propio
+ * archivo PNG o SVG final:
+ * - Esquina superior izquierda: `imgCalcomania` del sabor elegido.
+ * - Ventana central transparente: `imgProducto` visible dentro de la bolsa.
+ * - Estado vacío guiado si el cliente aún no elige su sabor.
+ *
+ * QUÉ PUEDES EDITAR AQUÍ:
+ * - REEMPLAZO POR TU PNG FINAL DE LA BOLSA 80 g:
+ *   Busca el comentario `[REEMPLAZAR AQUÍ POR TU PNG/SVG DOYPACK 80g]` más
+ *   abajo. Puedes sustituir el `<svg class="gm-doypack-shell-svg">` por:
+ *   `<img src="/images/empaques/doypack-80g.png" alt="" class="gm-doypack-shell-img" />`
+ *   sin tocar la lógica de la calcomanía ni de la ventana transparente.
+ * - Ajusta la posición de `.gm-doypack-sticker-slot` y `.gm-doypack-window`
+ *   en el CSS de `MixBuilderSection.astro` si tu PNG final tiene la ventana
+ *   en coordenadas distintas.
+ *
+ * CON QUÉ MÓDULO CONECTA:
+ * - Renderizado dentro de `MixBuilderSection.astro`.
+ * - Actualizado dinámicamente por `ui/mix-builder.client.ts` mediante
+ *   atributos `data-mb-doypack-*`.
+ * ============================================================================
+ */
+---
+
+<div class="gm-mb-preview-panel gm-doypack-panel" data-mb-doypack-view>
+  <div class="gm-doypack-stage" aria-live="polite">
+    <!-- Contenedor relativo que alinea el empaque, la calcomanía y la ventana transparente -->
+    <div class="gm-doypack-pouch" data-mb-doypack-pouch>
+      <!--
+        ======================================================================
+        [REEMPLAZAR AQUÍ POR TU PNG/SVG DOYPACK 80g]
+        Placeholder SVG rosado a rayas inspirado en el empaque real de GoManía.
+        Cuando tengas tu PNG con el centro transparente, simplemente reemplaza
+        este `<svg>` por:
+        <img src="/images/empaques/doypack-80g.png" alt="Bolsita Doypack 80 g" class="gm-doypack-shell-img" />
+        ======================================================================
+      -->
+      <svg
+        class="gm-doypack-shell-svg"
+        viewBox="0 0 260 340"
+        fill="none"
+        xmlns="http://www.w3.org/2000/svg"
+        aria-hidden="true"
+      >
+        <defs>
+          <!-- Patrón de rayas verticales sutiles usando el color de marca activo -->
+          <pattern id="gmDoypackStripes" width="20" height="20" patternUnits="userSpaceOnUse">
+            <rect width="20" height="20" fill="var(--brand-pink)" />
+            <rect width="10" height="20" fill="#FFFFFF" fill-opacity="0.14" />
+          </pattern>
+          <!-- Máscara que recorta la ventana central transparente real -->
+          <mask id="gmDoypackWindowMask">
+            <rect x="0" y="0" width="260" height="340" fill="#FFFFFF" />
+            <rect x="46" y="122" width="168" height="142" rx="34" fill="#000000" />
+          </mask>
+        </defs>
+
+        <!-- Cuerpo exterior de la bolsa Doypack con abertura central transparente -->
+        <g mask="url(#gmDoypackWindowMask)">
+          <!-- Silueta stand-up pouch -->
+          <path
+            d="M28 18C28 10 34 6 44 6H216C226 6 232 10 232 18L244 306C244 322 230 334 212 334H48C30 334 16 322 16 306L28 18Z"
+            fill="url(#gmDoypackStripes)"
+          />
+          <!-- Sello superior + muesca abre-fácil + cierre ziploc -->
+          <rect x="27" y="14" width="206" height="26" rx="4" fill="#FFFFFF" fill-opacity="0.18" />
+          <line x1="30" y1="48" x2="230" y2="48" stroke="#FFFFFF" stroke-opacity="0.55" stroke-width="2.5" stroke-dasharray="6 4" />
+          <circle cx="130" cy="24" r="6" fill="var(--bg-surface)" fill-opacity="0.9" />
+
+          <!-- Sello inferior de base Doypack -->
+          <path
+            d="M36 312C76 296 184 296 224 312"
+            stroke="#FFFFFF"
+            stroke-opacity="0.45"
+            stroke-width="2.5"
+            stroke-linecap="round"
+          />
+
+          <!-- Etiqueta discreta de marca en el borde derecho -->
+          <rect x="172" y="58" width="52" height="24" rx="12" fill="var(--bg-surface)" />
+          <text
+            x="198"
+            y="74"
+            text-anchor="middle"
+            font-family="Fredoka, sans-serif"
+            font-weight="700"
+            font-size="11"
+            fill="var(--brand-pink)"
+          >
+            GoManía
+          </text>
+
+          <!-- Sello de peso inferior -->
+          <rect x="92" y="280" width="76" height="24" rx="12" fill="var(--cta-primary)" />
+          <text
+            x="130"
+            y="296"
+            text-anchor="middle"
+            font-family="Fredoka, sans-serif"
+            font-weight="700"
+            font-size="12"
+            fill="var(--text-on-brand)"
+          >
+            80 g
+          </text>
+        </g>
+
+        <!-- Borde limpio alrededor de la ventana central transparente -->
+        <rect
+          x="46"
+          y="122"
+          width="168"
+          height="142"
+          rx="34"
+          stroke="#FFFFFF"
+          stroke-width="4"
+          fill="none"
+        />
+      </svg>
+
+      <!-- CAPA INTERNA: Ventana central transparente que muestra `imgProducto` -->
+      <div class="gm-doypack-window" data-mb-doypack-window>
+        <img
+          alt=""
+          class="gm-doypack-product-img"
+          data-mb-doypack-product
+          hidden
+        />
+        <div class="gm-doypack-window-empty" data-mb-doypack-empty>
+          <svg
+            viewBox="0 0 24 24"
+            width="28"
+            height="28"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="1.9"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            aria-hidden="true"
+          >
+            <circle cx="12" cy="12" r="9"></circle>
+            <path d="M12 8v8M8 12h8"></path>
+          </svg>
+          <span>Elige 1 sabor abajo</span>
+        </div>
+      </div>
+
+      <!-- CAPA SUPERIOR IZQUIERDA: Calcomanía (`imgCalcomania`) del sabor elegido -->
+      <div class="gm-doypack-sticker-slot" data-mb-doypack-sticker-slot>
+        <img
+          alt=""
+          class="gm-doypack-sticker-img"
+          data-mb-doypack-sticker
+          hidden
+        />
+        <span class="gm-doypack-sticker-placeholder" data-mb-doypack-sticker-empty>
+          Sticker
+        </span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Ficha resumen de la bolsita de 80 g -->
+  <div class="gm-doypack-info">
+    <div class="gm-doypack-meta">
+      <span class="gm-mb-pill gm-mb-pill--pink">Formato 80 g · Doypack</span>
+      <span class="gm-mb-price-tag">$1.000</span>
+    </div>
+
+    <h3 class="gm-doypack-flavor-name" data-mb-doypack-name>
+      Tu bolsita individual está vacía
+    </h3>
+    <p class="gm-doypack-hint" data-mb-doypack-hint>
+      Elige tu formato y toca 1 sabor en el catálogo (gomita dulce/ácida o maní dulce/salado) para verlo dentro del paquete.
+    </p>
+
+    <button
+      type="button"
+      class="gm-mb-ghost-btn"
+      data-mb-doypack-clear
+      hidden
+    >
+      <svg
+        viewBox="0 0 24 24"
+        width="16"
+        height="16"
+        fill="none"
+        stroke="currentColor"
+        stroke-width="2.2"
+        stroke-linecap="round"
+        stroke-linejoin="round"
+        aria-hidden="true"
+      >
+        <path d="M18 6 6 18M6 6l12 12"></path>
+      </svg>
+      <span>Cambiar sabor</span>
+    </button>
+  </div>
+</div>

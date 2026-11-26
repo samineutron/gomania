@@ -1,0 +1,948 @@
+---
+/**
+ * ============================================================================
+ * QUÉ HACE:
+ * Panel deslizable (Drawer) mobile-first y accesible del carrito de compras
+ * de GoManía SpA. Muestra:
+ * - Bolsitas de 80g (mini vista Doypack) y Mixes de 500g a 3kg (mini bolsa Kraft).
+ * - Lista de sabores con gramos equitativos, controles +/- cantidad, Editar y Eliminar.
+ * - Los 5 estados: ideal, vacío con CTA, carga/rehidratación, alerta de stock
+ *   insuficiente y bloqueo del paso al pedido cuando corresponde.
+ * - Nota permanente "Envío Blue Express por pagar al recibir".
+ *
+ * QUÉ PUEDES EDITAR AQUÍ:
+ * - Textos visibles del encabezado, estado vacío, nota de envío Blue Express
+ *   y botón "Continuar al pedido".
+ * - Estilos encapsulados al final (todos usan variables de `src/shared/tokens.css`
+ *   para responder automáticamente a `data-theme`).
+ *
+ * CON QUÉ MÓDULO CONECTA:
+ * - Montado en `src/pages/index.astro` dentro de `#slot-carrito`.
+ * - Controlado en el navegador por `./carrito.client.ts`.
+ * - Escucha `mix:agregadoAlCarrito`, `carrito:abrirDrawer`, `checkout:pedidoCompletado`
+ *   y emite `carrito:actualizado` y `carrito:editarItem`.
+ * ============================================================================
+ */
+---
+
+<aside
+  id="gm-carrito-drawer"
+  class="gm-cart-root"
+  role="dialog"
+  aria-modal="true"
+  aria-labelledby="gm-cart-title"
+  aria-hidden="true"
+>
+  {/* Fondo oscuro semitransparente: al tocarlo se cierra el carrito */}
+  <div class="gm-cart-overlay" data-cart-overlay></div>
+
+  {/* Panel deslizable principal */}
+  <div class="gm-cart-panel" data-cart-panel>
+    {/* Región invisible para anuncios accesibles en lectores de pantalla */}
+    <span class="gm-sr-only" role="status" aria-live="polite" data-cart-live></span>
+
+    {/* 1. CABECERA DEL DRAWER */}
+    <header class="gm-cart-header">
+      <div class="gm-cart-header-title">
+        <span class="gm-cart-header-icon" aria-hidden="true">
+          <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z" />
+            <line x1="3" y1="6" x2="21" y2="6" />
+            <path d="M16 10a4 4 0 0 1-8 0" />
+          </svg>
+        </span>
+        <h2 id="gm-cart-title">Tu carrito</h2>
+        <span class="gm-cart-count-pill" data-cart-count>0</span>
+      </div>
+
+      <button
+        type="button"
+        class="gm-cart-close-btn"
+        data-cart-close
+        aria-label="Cerrar carrito"
+      >
+        <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <line x1="18" y1="6" x2="6" y2="18" />
+          <line x1="6" y1="6" x2="18" y2="18" />
+        </svg>
+      </button>
+    </header>
+
+    {/* 2. CUERPO SCROLLEABLE CON LOS ESTADOS */}
+    <div class="gm-cart-body">
+      {/* Aviso temporal de acciones (bolsa agregada, límite de stock, etc.) */}
+      <div class="gm-cart-toast" data-cart-feedback hidden role="status"></div>
+
+      {/* ESTADO 3: CARGA / REHIDRATACIÓN CONTRA EL CATÁLOGO REAL */}
+      <section class="gm-cart-state-loading" data-cart-state="loading" hidden aria-label="Verificando stock del carrito">
+        <p class="gm-cart-loading-text">Verificando stock disponible de tus sabores...</p>
+        <div class="gm-cart-skeleton-card" aria-hidden="true">
+          <div class="gm-cart-skel-box"></div>
+          <div class="gm-cart-skel-lines">
+            <span></span>
+            <span></span>
+            <span></span>
+          </div>
+        </div>
+        <div class="gm-cart-skeleton-card" aria-hidden="true">
+          <div class="gm-cart-skel-box"></div>
+          <div class="gm-cart-skel-lines">
+            <span></span>
+            <span></span>
+            <span></span>
+          </div>
+        </div>
+      </section>
+
+      {/* ESTADO 2: CARRITO VACÍO CON ILUSTRACIÓN DULCE Y CTA */}
+      <section class="gm-cart-state-empty" data-cart-state="empty">
+        <div class="gm-cart-empty-art" aria-hidden="true">
+          <svg viewBox="0 0 120 120" width="96" height="96">
+            <circle cx="60" cy="60" r="52" fill="var(--bg-canvas, #F4F8FB)" />
+            <rect x="36" y="34" width="48" height="58" rx="12" fill="var(--brand-pink, #F44870)" />
+            <rect x="44" y="52" width="32" height="22" rx="8" fill="var(--bg-surface, #FFFFFF)" />
+            <circle cx="53" cy="63" r="5" fill="var(--brand-sky, #28AAE1)" />
+            <circle cx="67" cy="63" r="5" fill="var(--kraft-bag, #C89D70)" />
+            <line x1="42" y1="43" x2="78" y2="43" stroke="var(--text-on-brand, #FFFFFF)" stroke-width="2.5" stroke-dasharray="4 3" />
+          </svg>
+        </div>
+        <h3 class="gm-cart-empty-title">Tu carrito está vacío</h3>
+        <p class="gm-cart-empty-desc">
+          Elige una bolsita de 80g o arma tu mix de 500g hasta 3kg con tus sabores favoritos.
+        </p>
+        <button type="button" class="gm-cart-empty-cta" data-cart-empty-cta>
+          Armar mi primera bolsa
+        </button>
+      </section>
+
+      {/* ESTADO 1 (IDEAL) + ESTADO 4 (ALERTA DE STOCK INSUFICIENTE) */}
+      <section class="gm-cart-state-content" data-cart-state="content" hidden>
+        <div class="gm-cart-stock-banner" data-cart-stock-banner hidden role="alert">
+          <div class="gm-cart-stock-banner-head">
+            <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+              <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z" />
+              <line x1="12" y1="9" x2="12" y2="13" />
+              <line x1="12" y1="17" x2="12.01" y2="17" />
+            </svg>
+            <strong>Revisa el stock antes de continuar</strong>
+          </div>
+          <ul class="gm-cart-stock-list" data-cart-stock-list></ul>
+          <button type="button" class="gm-cart-revalidate-btn" data-cart-revalidate>
+            Revalidar stock
+          </button>
+        </div>
+
+        {/* Contenedor dinámico donde `carrito.client.ts` renderiza cada bolsa */}
+        <div class="gm-cart-items" data-cart-items></div>
+      </section>
+    </div>
+
+    {/* 3. PIE FIJO CON RESUMEN, NOTA BLUE EXPRESS Y CTA */}
+    <footer class="gm-cart-footer">
+      <div class="gm-cart-shipping-note">
+        <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <rect x="1" y="3" width="15" height="13" rx="2" />
+          <polygon points="16 8 20 8 23 11 23 16 16 16 16 8" />
+          <circle cx="5.5" cy="18.5" r="2.5" />
+          <circle cx="18.5" cy="18.5" r="2.5" />
+        </svg>
+        <span><strong>Envío Blue Express</strong> por pagar al recibir</span>
+      </div>
+
+      <div class="gm-cart-summary-row">
+        <div>
+          <span class="gm-cart-summary-label">Total productos</span>
+          <small class="gm-cart-summary-bags" data-cart-bags-label>0 bolsas</small>
+        </div>
+        <strong class="gm-cart-summary-total" data-cart-subtotal>$0</strong>
+      </div>
+
+      {/* ESTADO 5 (PERMISOS): Bloqueado si está vacío, validando o con stock insuficiente */}
+      <button
+        type="button"
+        class="gm-cart-checkout-btn"
+        data-cart-checkout
+        disabled
+        aria-disabled="true"
+      >
+        Continuar al pedido
+      </button>
+      <p class="gm-cart-checkout-hint" data-cart-checkout-hint>
+        Agrega al menos una bolsa para continuar al pedido.
+      </p>
+    </footer>
+  </div>
+</aside>
+
+<script>
+  import { initCarritoDrawer } from './carrito.client';
+  initCarritoDrawer();
+</script>
+
+<style is:global>
+  /* ==========================================================================
+     ESTILOS ENCAPSULADOS DEL MÓDULO `carrito` (prefijo `.gm-cart-*`)
+     Todos los colores leen `src/shared/tokens.css` para cambiar con `data-theme`.
+     Mobile-first desde 360px con objetivos táctiles >= 44x44px.
+     ========================================================================== */
+
+  .gm-cart-scroll-lock {
+    overflow: hidden;
+  }
+
+  .gm-sr-only {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    margin: -1px;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    white-space: nowrap;
+    border: 0;
+  }
+
+  /* Contenedor raíz del Drawer (oculto por defecto) */
+  .gm-cart-root {
+    position: fixed;
+    inset: 0;
+    z-index: 1200;
+    pointer-events: none;
+    visibility: hidden;
+    transition: visibility 0.25s ease;
+  }
+
+  .gm-cart-root.is-open {
+    pointer-events: auto;
+    visibility: visible;
+  }
+
+  /* Overlay oscuro */
+  .gm-cart-overlay {
+    position: absolute;
+    inset: 0;
+    background: rgba(17, 24, 39, 0.56);
+    backdrop-filter: blur(2px);
+    opacity: 0;
+    transition: opacity 0.25s ease;
+  }
+
+  .gm-cart-root.is-open .gm-cart-overlay {
+    opacity: 1;
+  }
+
+  /* Panel deslizable derecho */
+  .gm-cart-panel {
+    position: absolute;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    width: 100%;
+    max-width: 440px;
+    display: flex;
+    flex-direction: column;
+    background: var(--bg-canvas, #F4F8FB);
+    color: var(--text-main, #111827);
+    box-shadow: -8px 0 32px rgba(17, 24, 39, 0.2);
+    transform: translateX(100%);
+    transition: transform 0.28s cubic-bezier(0.22, 1, 0.36, 1);
+  }
+
+  .gm-cart-root.is-open .gm-cart-panel {
+    transform: translateX(0);
+  }
+
+  /* Cabecera con marca */
+  .gm-cart-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    padding: 14px 16px;
+    background: var(--brand-pink, #F44870);
+    color: var(--text-on-brand, #FFFFFF);
+    flex-shrink: 0;
+  }
+
+  .gm-cart-header-title {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+
+  .gm-cart-header-title h2 {
+    margin: 0;
+    font-family: var(--font-display, 'Fredoka', system-ui, sans-serif);
+    font-size: 1.25rem;
+    line-height: 1.2;
+    color: var(--text-on-brand, #FFFFFF);
+  }
+
+  .gm-cart-header-icon {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .gm-cart-count-pill {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 26px;
+    height: 26px;
+    padding: 0 8px;
+    border-radius: 999px;
+    background: rgba(255, 255, 255, 0.22);
+    color: var(--text-on-brand, #FFFFFF);
+    font-size: 0.85rem;
+    font-weight: 700;
+  }
+
+  .gm-cart-close-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 44px;
+    height: 44px;
+    border: 0;
+    border-radius: 12px;
+    background: rgba(255, 255, 255, 0.18);
+    color: var(--text-on-brand, #FFFFFF);
+    cursor: pointer;
+    transition: background 0.18s ease, transform 0.15s ease;
+  }
+
+  .gm-cart-close-btn:hover {
+    background: rgba(255, 255, 255, 0.3);
+  }
+
+  .gm-cart-close-btn:focus-visible {
+    outline: 3px solid var(--text-on-brand, #FFFFFF);
+    outline-offset: 2px;
+  }
+
+  /* Cuerpo scrollable */
+  .gm-cart-body {
+    flex: 1 1 auto;
+    overflow-y: auto;
+    padding: 16px;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+  }
+
+  /* Toast de retroalimentación */
+  .gm-cart-toast {
+    padding: 10px 14px;
+    border-radius: 12px;
+    font-size: 0.88rem;
+    font-weight: 600;
+    background: var(--bg-surface, #FFFFFF);
+    color: var(--text-main, #111827);
+    border: 1.5px solid var(--brand-sky, #28AAE1);
+  }
+
+  .gm-cart-toast[data-variant='success'] {
+    border-color: var(--state-success, #15803D);
+    color: var(--state-success, #15803D);
+  }
+
+  .gm-cart-toast[data-variant='warn'] {
+    border-color: var(--state-warn, #B45309);
+    color: var(--state-warn, #B45309);
+  }
+
+  /* Estado 3: Loading / Skeleton */
+  .gm-cart-loading-text {
+    margin: 0 0 12px;
+    font-size: 0.9rem;
+    font-weight: 600;
+    color: var(--text-muted, #4B5563);
+    text-align: center;
+  }
+
+  .gm-cart-skeleton-card {
+    display: flex;
+    gap: 12px;
+    padding: 14px;
+    margin-bottom: 12px;
+    border-radius: 16px;
+    background: var(--bg-surface, #FFFFFF);
+    border: 1px solid rgba(17, 24, 39, 0.08);
+  }
+
+  .gm-cart-skel-box {
+    width: 56px;
+    height: 72px;
+    border-radius: 10px;
+    background: rgba(244, 72, 112, 0.14);
+    animation: gmCartPulse 1.3s ease-in-out infinite;
+    flex-shrink: 0;
+  }
+
+  .gm-cart-skel-lines {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    justify-content: center;
+  }
+
+  .gm-cart-skel-lines span {
+    display: block;
+    height: 12px;
+    border-radius: 6px;
+    background: rgba(17, 24, 39, 0.09);
+    animation: gmCartPulse 1.3s ease-in-out infinite;
+  }
+
+  .gm-cart-skel-lines span:nth-child(2) {
+    width: 75%;
+  }
+
+  .gm-cart-skel-lines span:nth-child(3) {
+    width: 50%;
+  }
+
+  @keyframes gmCartPulse {
+    0%, 100% { opacity: 0.45; }
+    50% { opacity: 1; }
+  }
+
+  /* Estado 2: Vacío */
+  .gm-cart-state-empty {
+    margin: auto 0;
+    padding: 28px 16px;
+    text-align: center;
+    background: var(--bg-surface, #FFFFFF);
+    border-radius: 20px;
+    border: 1px solid rgba(17, 24, 39, 0.08);
+  }
+
+  .gm-cart-empty-art {
+    margin-bottom: 12px;
+  }
+
+  .gm-cart-empty-title {
+    margin: 0 0 8px;
+    font-family: var(--font-display, 'Fredoka', system-ui, sans-serif);
+    font-size: 1.2rem;
+    color: var(--text-main, #111827);
+  }
+
+  .gm-cart-empty-desc {
+    margin: 0 0 18px;
+    font-size: 0.92rem;
+    color: var(--text-muted, #4B5563);
+    line-height: 1.5;
+  }
+
+  .gm-cart-empty-cta {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 46px;
+    padding: 10px 22px;
+    border: 0;
+    border-radius: 14px;
+    background: var(--cta-primary, #111827);
+    color: var(--text-on-brand, #FFFFFF);
+    font-weight: 700;
+    font-size: 0.95rem;
+    cursor: pointer;
+    transition: background 0.18s ease, transform 0.15s ease;
+  }
+
+  .gm-cart-empty-cta:hover {
+    background: var(--brand-sky, #28AAE1);
+  }
+
+  /* Estado 4: Banner de alerta de stock insuficiente */
+  .gm-cart-stock-banner {
+    padding: 12px 14px;
+    margin-bottom: 12px;
+    border-radius: 14px;
+    background: #FFF1F2;
+    background: color-mix(in srgb, var(--state-error, #BE123C) 10%, var(--bg-surface, #FFFFFF));
+    border: 1.5px solid var(--state-error, #BE123C);
+    color: var(--state-error, #BE123C);
+  }
+
+  .gm-cart-stock-banner-head {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 0.92rem;
+    margin-bottom: 6px;
+  }
+
+  .gm-cart-stock-list {
+    margin: 0 0 10px;
+    padding-left: 18px;
+    font-size: 0.84rem;
+    line-height: 1.45;
+  }
+
+  .gm-cart-revalidate-btn {
+    min-height: 44px;
+    padding: 8px 14px;
+    border-radius: 10px;
+    border: 1.5px solid var(--state-error, #BE123C);
+    background: var(--bg-surface, #FFFFFF);
+    color: var(--state-error, #BE123C);
+    font-weight: 700;
+    font-size: 0.84rem;
+    cursor: pointer;
+  }
+
+  /* Lista de tarjetas del carrito */
+  .gm-cart-items {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+  }
+
+  .gm-cart-item {
+    background: var(--bg-surface, #FFFFFF);
+    border-radius: 16px;
+    padding: 14px;
+    border: 1.5px solid rgba(17, 24, 39, 0.09);
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+  }
+
+  .gm-cart-item.is-error {
+    border-color: var(--state-error, #BE123C);
+    box-shadow: 0 0 0 2px color-mix(in srgb, var(--state-error, #BE123C) 16%, transparent);
+  }
+
+  .gm-cart-item-top {
+    display: flex;
+    gap: 12px;
+    align-items: flex-start;
+  }
+
+  /* Miniatura Doypack 80g */
+  .gm-cart-thumb {
+    width: 56px;
+    height: 72px;
+    flex-shrink: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+  }
+
+  .gm-cart-thumb--doypack {
+    border-radius: 10px 10px 14px 14px;
+    background: repeating-linear-gradient(
+      90deg,
+      var(--brand-pink, #F44870) 0 6px,
+      color-mix(in srgb, var(--brand-pink, #F44870) 80%, #FFFFFF) 6px 12px
+    );
+    border: 1.5px solid rgba(17, 24, 39, 0.14);
+    overflow: hidden;
+  }
+
+  .gm-cart-doypack-zip {
+    position: absolute;
+    top: 7px;
+    left: 6px;
+    right: 6px;
+    height: 2px;
+    background: rgba(255, 255, 255, 0.65);
+    border-radius: 2px;
+  }
+
+  .gm-cart-doypack-sticker {
+    position: absolute;
+    top: 11px;
+    left: 4px;
+    width: 19px;
+    height: 19px;
+    border-radius: 50%;
+    background: var(--bg-surface, #FFFFFF);
+    border: 1px solid rgba(17, 24, 39, 0.14);
+    overflow: hidden;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 2;
+  }
+
+  .gm-cart-doypack-sticker img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+
+  .gm-cart-doypack-window {
+    width: 34px;
+    height: 30px;
+    margin-top: 8px;
+    border-radius: 9px;
+    background: rgba(255, 255, 255, 0.92);
+    border: 1.5px solid rgba(255, 255, 255, 0.95);
+    overflow: hidden;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .gm-cart-doypack-window img {
+    width: 85%;
+    height: 85%;
+    object-fit: contain;
+  }
+
+  .gm-cart-doypack-weight {
+    position: absolute;
+    bottom: 3px;
+    left: 50%;
+    transform: translateX(-50%);
+    padding: 1px 6px;
+    border-radius: 999px;
+    background: var(--cta-primary, #111827);
+    color: var(--text-on-brand, #FFFFFF);
+    font-size: 0.62rem;
+    font-weight: 700;
+    line-height: 1.2;
+  }
+
+  /* Detalles de la bolsa */
+  .gm-cart-item-meta {
+    flex: 1;
+    min-width: 0;
+  }
+
+  .gm-cart-item-head {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 8px;
+    margin-bottom: 8px;
+  }
+
+  .gm-cart-item-title {
+    margin: 0 0 4px;
+    font-family: var(--font-display, 'Fredoka', system-ui, sans-serif);
+    font-size: 1rem;
+    line-height: 1.2;
+    color: var(--text-main, #111827);
+  }
+
+  .gm-cart-profile-badge {
+    display: inline-block;
+    padding: 2px 8px;
+    border-radius: 999px;
+    font-size: 0.72rem;
+    font-weight: 700;
+    background: var(--bg-canvas, #F4F8FB);
+    color: var(--text-muted, #4B5563);
+    border: 1px solid rgba(17, 24, 39, 0.08);
+  }
+
+  .gm-cart-profile-badge--dulce-acido {
+    background: color-mix(in srgb, var(--brand-pink, #F44870) 12%, var(--bg-surface, #FFFFFF));
+    color: var(--brand-pink, #F44870);
+    border-color: color-mix(in srgb, var(--brand-pink, #F44870) 30%, transparent);
+  }
+
+  .gm-cart-profile-badge--salado {
+    background: color-mix(in srgb, var(--kraft-bag, #C89D70) 20%, var(--bg-surface, #FFFFFF));
+    color: var(--text-main, #111827);
+    border-color: color-mix(in srgb, var(--kraft-bag, #C89D70) 55%, transparent);
+  }
+
+  .gm-cart-item-price {
+    text-align: right;
+    flex-shrink: 0;
+  }
+
+  .gm-cart-item-price strong {
+    display: block;
+    font-size: 1rem;
+    color: var(--text-main, #111827);
+  }
+
+  .gm-cart-item-price small {
+    display: block;
+    font-size: 0.74rem;
+    color: var(--text-muted, #4B5563);
+  }
+
+  /* Lista de sabores con gramos */
+  .gm-cart-flavor-list {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+  }
+
+  .gm-cart-flavor-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+    font-size: 0.84rem;
+    color: var(--text-main, #111827);
+    padding: 3px 6px;
+    border-radius: 8px;
+    background: var(--bg-canvas, #F4F8FB);
+  }
+
+  .gm-cart-flavor-row.is-flavor-issue {
+    background: color-mix(in srgb, var(--state-error, #BE123C) 10%, var(--bg-surface, #FFFFFF));
+    color: var(--state-error, #BE123C);
+    font-weight: 600;
+  }
+
+  .gm-cart-flavor-name {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    min-width: 0;
+  }
+
+  .gm-cart-flavor-name span {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .gm-cart-flavor-dot {
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
+    object-fit: cover;
+    flex-shrink: 0;
+    background: var(--bg-surface, #FFFFFF);
+  }
+
+  .gm-cart-flavor-grams {
+    font-weight: 700;
+    font-size: 0.78rem;
+    color: var(--text-muted, #4B5563);
+    flex-shrink: 0;
+  }
+
+  .gm-cart-flavor-row.is-flavor-issue .gm-cart-flavor-grams {
+    color: var(--state-error, #BE123C);
+  }
+
+  /* Alerta inline por ítem afectado */
+  .gm-cart-item-alert {
+    padding: 8px 10px;
+    border-radius: 10px;
+    background: color-mix(in srgb, var(--state-error, #BE123C) 9%, var(--bg-surface, #FFFFFF));
+    color: var(--state-error, #BE123C);
+    font-size: 0.8rem;
+    line-height: 1.4;
+  }
+
+  .gm-cart-item-alert p {
+    margin: 0;
+  }
+
+  .gm-cart-item-alert p + p {
+    margin-top: 4px;
+  }
+
+  /* Barra de acciones del ítem (táctil >= 44px) */
+  .gm-cart-item-actions {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+    padding-top: 8px;
+    border-top: 1px dashed rgba(17, 24, 39, 0.1);
+  }
+
+  .gm-cart-qty {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    background: var(--bg-canvas, #F4F8FB);
+    border-radius: 12px;
+    padding: 2px;
+    border: 1px solid rgba(17, 24, 39, 0.1);
+  }
+
+  .gm-cart-qty-btn {
+    width: 44px;
+    height: 44px;
+    border: 0;
+    border-radius: 10px;
+    background: var(--bg-surface, #FFFFFF);
+    color: var(--text-main, #111827);
+    font-size: 1.15rem;
+    font-weight: 700;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    transition: background 0.15s ease, color 0.15s ease;
+  }
+
+  .gm-cart-qty-btn:hover:not(:disabled) {
+    background: var(--brand-sky, #28AAE1);
+    color: var(--text-on-brand, #FFFFFF);
+  }
+
+  .gm-cart-qty-btn:disabled {
+    opacity: 0.4;
+    cursor: not-allowed;
+  }
+
+  .gm-cart-qty-value {
+    min-width: 28px;
+    text-align: center;
+    font-weight: 700;
+    font-size: 0.92rem;
+  }
+
+  .gm-cart-item-btns {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+  }
+
+  .gm-cart-btn-edit,
+  .gm-cart-btn-remove {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    min-height: 44px;
+    padding: 0 12px;
+    border-radius: 10px;
+    font-size: 0.82rem;
+    font-weight: 700;
+    cursor: pointer;
+    transition: background 0.15s ease, color 0.15s ease, border-color 0.15s ease;
+  }
+
+  .gm-cart-btn-edit {
+    border: 1.5px solid var(--brand-sky, #28AAE1);
+    background: var(--bg-surface, #FFFFFF);
+    color: var(--text-main, #111827);
+  }
+
+  .gm-cart-btn-edit:hover {
+    background: var(--brand-sky, #28AAE1);
+    color: var(--text-on-brand, #FFFFFF);
+  }
+
+  .gm-cart-btn-remove {
+    border: 1.5px solid rgba(190, 18, 60, 0.25);
+    background: var(--bg-surface, #FFFFFF);
+    color: var(--state-error, #BE123C);
+  }
+
+  .gm-cart-btn-remove:hover {
+    background: var(--state-error, #BE123C);
+    border-color: var(--state-error, #BE123C);
+    color: var(--text-on-brand, #FFFFFF);
+  }
+
+  /* Pie fijo del carrito */
+  .gm-cart-footer {
+    flex-shrink: 0;
+    padding: 14px 16px 18px;
+    background: var(--bg-surface, #FFFFFF);
+    border-top: 1px solid rgba(17, 24, 39, 0.1);
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+
+  .gm-cart-shipping-note {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 9px 12px;
+    border-radius: 12px;
+    background: color-mix(in srgb, var(--brand-sky, #28AAE1) 12%, var(--bg-surface, #FFFFFF));
+    color: var(--text-main, #111827);
+    font-size: 0.84rem;
+    line-height: 1.3;
+  }
+
+  .gm-cart-shipping-note svg {
+    color: var(--brand-sky, #28AAE1);
+    flex-shrink: 0;
+  }
+
+  .gm-cart-summary-row {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 12px;
+  }
+
+  .gm-cart-summary-label {
+    display: block;
+    font-size: 0.92rem;
+    font-weight: 700;
+    color: var(--text-main, #111827);
+  }
+
+  .gm-cart-summary-bags {
+    display: block;
+    font-size: 0.78rem;
+    color: var(--text-muted, #4B5563);
+  }
+
+  .gm-cart-summary-total {
+    font-family: var(--font-display, 'Fredoka', system-ui, sans-serif);
+    font-size: 1.5rem;
+    color: var(--text-main, #111827);
+  }
+
+  .gm-cart-checkout-btn {
+    width: 100%;
+    min-height: 48px;
+    padding: 12px 18px;
+    border: 0;
+    border-radius: 14px;
+    background: var(--cta-primary, #111827);
+    color: var(--text-on-brand, #FFFFFF);
+    font-family: var(--font-display, 'Fredoka', system-ui, sans-serif);
+    font-size: 1.05rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background 0.18s ease, opacity 0.18s ease, transform 0.15s ease;
+  }
+
+  .gm-cart-checkout-btn:hover:not(:disabled) {
+    background: var(--brand-sky, #28AAE1);
+  }
+
+  .gm-cart-checkout-btn:disabled {
+    opacity: 0.45;
+    cursor: not-allowed;
+  }
+
+  .gm-cart-checkout-hint {
+    margin: 0;
+    text-align: center;
+    font-size: 0.78rem;
+    color: var(--text-muted, #4B5563);
+  }
+
+  /* Accesibilidad: reducir animaciones si el usuario lo prefiere */
+  @media (prefers-reduced-motion: reduce) {
+    .gm-cart-root,
+    .gm-cart-overlay,
+    .gm-cart-panel,
+    .gm-cart-skel-box,
+    .gm-cart-skel-lines span {
+      transition: none;
+      animation: none;
+    }
+  }
+</style>

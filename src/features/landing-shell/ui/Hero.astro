@@ -1,0 +1,424 @@
+---
+/**
+ * ============================================================================
+ * QUÉ HACE:
+ * Portada principal (Hero) de GoManía SpA diseñada mobile-first:
+ * - Móvil (< 1024px): bloque de texto y CTA arriba; espacio multimedia abajo.
+ * - Escritorio (>= 1024px): 2 columnas — texto grande + lema "Más de 100
+ *   sabores" + CTA "Explorar catálogo" a la izquierda; contenedor reservado
+ *   para foto o video a la derecha.
+ * - Implementa estados Vacío (marco decorativo placeholder listo para editar)
+ *   y Error (fallback automático si falla la carga de tu futura foto o video).
+ *
+ * QUÉ PUEDES EDITAR AQUÍ:
+ * - Para activar una FOTO o VIDEO real en el lado derecho del Hero, busca el
+ *   comentario `=== SLOT RESERVADO PARA FOTO O VIDEO DEL HERO ===` más abajo
+ *   y descomenta la opción que prefieras (imagen o video).
+ * - Los textos principales leen `BRAND_CONFIG` y `BUSINESS_RULES` desde
+ *   `src/shared/config.ts`.
+ *
+ * CON QUÉ MÓDULO CONECTA:
+ * - Lee `BRAND_CONFIG` y `BUSINESS_RULES` desde `src/shared/config.ts`.
+ * - Enlaza directamente con las secciones `#catalogo` y `#armador-mix`.
+ * ============================================================================
+ */
+import { BRAND_CONFIG, BUSINESS_RULES } from '../../../shared/config';
+---
+
+<div class="gm-hero" data-landing-hero>
+  <div class="gm-container gm-hero__grid">
+    <!-- ======================================================================
+         COLUMNA IZQUIERDA (ARRIBA EN MÓVIL): TITULAR, LEMA Y CTA
+         ====================================================================== -->
+    <div class="gm-hero__content">
+      <span class="gm-hero__eyebrow">
+        <span class="gm-hero__dot" aria-hidden="true"></span>
+        {BRAND_CONFIG.tagline}
+      </span>
+
+      <h1 class="gm-hero__title">
+        Arma tus bolsas de gomitas y maní por gramos
+      </h1>
+
+      <p class="gm-hero__subtitle">
+        Elige desde una bolsita individual de <strong>80 g</strong> hasta mixes de
+        <strong>3 kg</strong> con tus sabores dulces, ácidos o salados favoritos.
+        {BUSINESS_RULES.shippingNote}
+      </p>
+
+      <div class="gm-hero__actions">
+        <a href="#catalogo" class="gm-hero__cta">
+          Explorar catálogo
+          <svg
+            width="20"
+            height="20"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2.4"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            aria-hidden="true"
+          >
+            <path d="M5 12h14" />
+            <path d="m13 6 6 6-6 6" />
+          </svg>
+        </a>
+
+        <a href="#quienes-somos" class="gm-hero__secondary">
+          Nuestra historia
+        </a>
+      </div>
+
+      <ul class="gm-hero__highlights" aria-label="Beneficios principales">
+        <li class="gm-hero__pill">80 g a 3 kg</li>
+        <li class="gm-hero__pill">Gomitas y Maní</li>
+        <li class="gm-hero__pill">Envío {BUSINESS_RULES.shippingCarrier}</li>
+      </ul>
+    </div>
+
+    <!-- ======================================================================
+         COLUMNA DERECHA (ABAJO EN MÓVIL): SLOT RESERVADO PARA FOTO O VIDEO
+         ====================================================================== -->
+    <div class="gm-hero__media-wrap">
+      <div class="gm-hero__media-frame" data-hero-media-frame>
+        <!-- ==================================================================
+             === SLOT RESERVADO PARA FOTO O VIDEO DEL HERO ===
+             Cuando tengas tu foto o video definitivo:
+             1. Guárdalo en `public/images/hero/` (ej. `hero-gomania.webp` o
+                `hero-gomania.mp4`).
+             2. Descomenta UNA de las dos opciones siguientes y agrega la clase
+                `is-hidden` al bloque `data-hero-fallback` (si falla la carga
+                en producción, el script mostrará el fallback automáticamente).
+
+             OPCIÓN A — FOTO:
+             <img
+               src="/images/hero/hero-gomania.webp"
+               alt="Bolsas y gomitas de GoManía SpA"
+               class="gm-hero__media-asset"
+               width="640"
+               height="520"
+               decoding="async"
+               data-hero-media
+             />
+
+             OPCIÓN B — VIDEO CORTO EN BUCLE (SILENCIADO):
+             <video
+               src="/images/hero/hero-gomania.mp4"
+               poster="/images/hero/hero-poster.webp"
+               class="gm-hero__media-asset"
+               autoplay
+               muted
+               loop
+               playsinline
+               data-hero-media
+             ></video>
+             ================================================================== -->
+
+        <!-- ESTADO VACÍO / FALLBACK AUTOMÁTICO CON IDENTIDAD A COLOR -->
+        <div class="gm-hero__fallback" data-hero-fallback>
+          <div class="gm-hero__fallback-badge">Espacio listo para foto o video</div>
+
+          <!-- Ilustración decorativa a color estilo GoManía (nunca B/N) -->
+          <svg
+            class="gm-hero__fallback-art"
+            viewBox="0 0 320 220"
+            fill="none"
+            xmlns="http://www.w3.org/2000/svg"
+            role="img"
+            aria-label="Ilustración decorativa de bolsas y sabores GoManía SpA"
+          >
+            <rect x="16" y="16" width="288" height="188" rx="28" fill="#FFFFFF" fill-opacity="0.92" />
+            <circle cx="72" cy="70" r="28" fill="#FFE5EC" />
+            <circle cx="248" cy="152" r="34" fill="#E6F7FE" />
+            <!-- Bolsa Doypack estilizada a color -->
+            <rect x="108" y="34" width="104" height="148" rx="18" fill="#F44870" />
+            <rect x="118" y="46" width="84" height="10" rx="5" fill="#FFFFFF" fill-opacity="0.35" />
+            <!-- Ventana central transparente simulada -->
+            <rect x="122" y="84" width="76" height="64" rx="14" fill="#FFF2F5" stroke="#FFFFFF" stroke-width="3" />
+            <!-- Gomitas y maníes de colores dentro de la ventana -->
+            <circle cx="144" cy="112" r="11" fill="#28AAE1" />
+            <circle cx="164" cy="122" r="12" fill="#F44870" />
+            <circle cx="178" cy="106" r="10" fill="#C89D70" />
+            <circle cx="152" cy="130" r="8" fill="#15803D" />
+            <!-- Sello G&M en esquina superior izquierda -->
+            <circle cx="130" cy="68" r="13" fill="#28AAE1" stroke="#FFFFFF" stroke-width="2" />
+            <text
+              x="130"
+              y="72"
+              text-anchor="middle"
+              font-family="Fredoka, sans-serif"
+              font-weight="700"
+              font-size="9"
+              fill="#FFFFFF"
+            >G&amp;M</text>
+            <text
+              x="160"
+              y="170"
+              text-anchor="middle"
+              font-family="Fredoka, sans-serif"
+              font-weight="700"
+              font-size="13"
+              fill="#FFFFFF"
+            >GoManía</text>
+          </svg>
+
+          <p class="gm-hero__fallback-caption">
+            {BRAND_CONFIG.shortName} · {BRAND_CONFIG.tagline}
+          </p>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+  /**
+   * Estado de error del Hero:
+   * Si en el futuro insertas una foto (`<img>`) o video (`<video>`) con el
+   * atributo `data-hero-media` y falla su carga en producción, oculta el medio
+   * roto y activa automáticamente el banner ilustrado con la marca a color.
+   */
+  const heroRoot = document.querySelector<HTMLElement>('[data-landing-hero]');
+
+  if (heroRoot) {
+    const mediaEl = heroRoot.querySelector<HTMLImageElement | HTMLVideoElement>('[data-hero-media]');
+    const fallbackEl = heroRoot.querySelector<HTMLElement>('[data-hero-fallback]');
+
+    if (mediaEl && fallbackEl) {
+      const activateFallback = (): void => {
+        mediaEl.hidden = true;
+        fallbackEl.classList.remove('is-hidden');
+      };
+
+      const activateMedia = (): void => {
+        mediaEl.hidden = false;
+        fallbackEl.classList.add('is-hidden');
+      };
+
+      if (mediaEl instanceof HTMLImageElement) {
+        if (mediaEl.complete) {
+          if (mediaEl.naturalWidth > 0) activateMedia();
+          else activateFallback();
+        } else {
+          mediaEl.addEventListener('load', activateMedia, { once: true });
+          mediaEl.addEventListener('error', activateFallback, { once: true });
+        }
+      } else {
+        mediaEl.addEventListener('loadeddata', activateMedia, { once: true });
+        mediaEl.addEventListener('error', activateFallback, { once: true });
+      }
+    }
+  }
+</script>
+
+<style>
+  /* Contenedor principal del Hero usando tokens del tema activo */
+  .gm-hero {
+    background-color: var(--bg-hero);
+    color: var(--text-on-brand);
+    padding-block: var(--space-8) var(--space-12);
+    border-bottom: var(--border-width) solid var(--border-color);
+  }
+
+  .gm-hero__grid {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: var(--space-8);
+    align-items: center;
+  }
+
+  .gm-hero__content {
+    display: grid;
+    gap: var(--space-4);
+    justify-items: start;
+  }
+
+  /* Píldora superior con el lema "Más de 100 sabores" */
+  .gm-hero__eyebrow {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--space-2);
+    padding: var(--space-2) var(--space-4);
+    border-radius: var(--radius-pill);
+    background-color: var(--bg-surface);
+    color: var(--text-main);
+    border: var(--border-width) solid var(--border-color);
+    font-family: var(--font-display);
+    font-size: var(--text-sm);
+    font-weight: 700;
+    box-shadow: var(--shadow-sm);
+  }
+
+  .gm-hero__dot {
+    width: 10px;
+    height: 10px;
+    border-radius: var(--radius-pill);
+    background-color: var(--brand-sky);
+  }
+
+  .gm-hero__title {
+    font-size: var(--text-hero);
+    font-weight: 700;
+    max-width: 16ch;
+  }
+
+  .gm-hero__subtitle {
+    font-size: var(--text-lg);
+    max-width: 52ch;
+    opacity: 0.96;
+  }
+
+  /* Botonera CTA mobile-first (zona del pulgar >= 44px) */
+  .gm-hero__actions {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: var(--space-3);
+    margin-top: var(--space-2);
+  }
+
+  .gm-hero__cta {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: var(--space-2);
+    min-height: 48px;
+    padding: var(--space-3) var(--space-6);
+    border-radius: var(--radius-pill);
+    background-color: var(--cta-primary);
+    color: var(--cta-primary-text);
+    border: var(--border-width) solid var(--border-color);
+    font-family: var(--font-display);
+    font-size: var(--text-lg);
+    font-weight: 600;
+    box-shadow: var(--shadow-md);
+    transition: background-color var(--transition-fast), transform var(--transition-fast);
+  }
+
+  .gm-hero__cta:hover {
+    background-color: var(--cta-primary-hover);
+    transform: translateY(-2px);
+  }
+
+  .gm-hero__secondary {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 48px;
+    padding: var(--space-3) var(--space-5);
+    border-radius: var(--radius-pill);
+    background-color: var(--bg-surface);
+    color: var(--text-main);
+    border: var(--border-width) solid var(--border-color);
+    font-weight: 700;
+    font-size: var(--text-sm);
+    box-shadow: var(--shadow-sm);
+    transition: background-color var(--transition-fast), transform var(--transition-fast);
+  }
+
+  .gm-hero__secondary:hover {
+    background-color: var(--brand-sky-soft);
+    transform: translateY(-1px);
+  }
+
+  /* Chips informativos rápidos */
+  .gm-hero__highlights {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-2);
+    list-style: none;
+    margin: var(--space-2) 0 0;
+    padding: 0;
+  }
+
+  .gm-hero__pill {
+    padding: var(--space-1) var(--space-3);
+    border-radius: var(--radius-pill);
+    background-color: var(--brand-sky-soft);
+    color: var(--text-main);
+    border: var(--border-width) solid var(--border-color);
+    font-size: var(--text-xs);
+    font-weight: 700;
+  }
+
+  /* Marco reservado para foto o video */
+  .gm-hero__media-wrap {
+    width: 100%;
+  }
+
+  .gm-hero__media-frame {
+    position: relative;
+    width: 100%;
+    min-height: 280px;
+    border-radius: var(--radius-xl);
+    background-color: var(--bg-surface);
+    color: var(--text-main);
+    border: var(--border-width) solid var(--border-color);
+    box-shadow: var(--shadow-lg);
+    overflow: hidden;
+    display: grid;
+    place-items: center;
+    padding: var(--space-5);
+  }
+
+  .gm-hero__media-asset {
+    width: 100%;
+    height: 100%;
+    min-height: 320px;
+    max-height: 440px;
+    object-fit: cover;
+    border-radius: var(--radius-lg);
+  }
+
+  .gm-hero__fallback {
+    display: grid;
+    justify-items: center;
+    gap: var(--space-3);
+    text-align: center;
+    width: 100%;
+  }
+
+  .gm-hero__fallback.is-hidden {
+    display: none;
+  }
+
+  .gm-hero__fallback-badge {
+    padding: var(--space-1) var(--space-3);
+    border-radius: var(--radius-pill);
+    background-color: var(--brand-pink-soft);
+    color: var(--brand-pink-dark);
+    font-size: var(--text-xs);
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+  }
+
+  .gm-hero__fallback-art {
+    width: min(100%, 320px);
+    height: auto;
+  }
+
+  .gm-hero__fallback-caption {
+    font-family: var(--font-display);
+    font-size: var(--text-base);
+    font-weight: 600;
+    color: var(--text-muted);
+  }
+
+  /* Escritorio (>= 1024px): 2 columnas — texto a la izquierda, media a la derecha */
+  @media (min-width: 1024px) {
+    .gm-hero {
+      padding-block: var(--space-16);
+    }
+
+    .gm-hero__grid {
+      grid-template-columns: 1.1fr 0.9fr;
+      gap: var(--space-12);
+    }
+
+    .gm-hero__media-frame {
+      min-height: 380px;
+    }
+  }
+</style>
