@@ -3,7 +3,7 @@
  * QUÉ HACE:
  * Funciones matemáticas compartidas de la superficie del Doypack y
  * constructores de geometrías 3D (paneles frontal/trasero, fuelle inferior,
- * sellados laterales, canto Euro-slot y geometría del malvavisco).
+ * sellados laterales, canto Euro-slot y geometría del maní confitado).
  *
  * CON QUÉ MÓDULO CONECTA:
  * - Lee `POUCH_CONFIG` desde `./pouch-constants`.
@@ -351,40 +351,56 @@ export function buildEuroHoleRimGeometry(): THREE.BufferGeometry {
 }
 
 /**
- * Geometría de malvavisco esponjoso almohadillado con bordes redondeados suaves.
+ * Geometría orgánica e irregular de maní confitado con costra grumosa de azúcar
+ * y sombreado por vértices para dar profundidad opaca en los relieves.
  */
-export function createMarshmallowGeometry(): THREE.LatheGeometry {
-  const radius = 0.106;
-  const halfLen = 0.118;
-  const pts: THREE.Vector2[] = [];
+export function createCandiedPeanutGeometry(variantIndex = 0): THREE.BufferGeometry {
+  const geom = new THREE.IcosahedronGeometry(1, 3);
+  const posAttr = geom.attributes.position;
+  const colors = new Float32Array(posAttr.count * 3);
 
-  pts.push(new THREE.Vector2(0.0, -halfLen * 0.96));
-  pts.push(new THREE.Vector2(radius * 0.48, -halfLen * 0.985));
-  pts.push(new THREE.Vector2(radius * 0.72, -halfLen));
+  const seed = (variantIndex + 1) * 1.73;
+  const rx = 0.082;
+  const ry = 0.118;
+  const rz = 0.076;
 
-  const cr = radius * 0.30;
-  for (let i = 0; i <= 7; i++) {
-    const a = -Math.PI * 0.5 + (i / 7) * (Math.PI * 0.5);
-    pts.push(new THREE.Vector2(radius - cr + Math.cos(a) * cr, -halfLen + cr + Math.sin(a) * cr));
+  for (let i = 0; i < posAttr.count; i++) {
+    const ux = posAttr.getX(i);
+    const uy = posAttr.getY(i);
+    const uz = posAttr.getZ(i);
+
+    // Leve cintura de maní + asimetría natural entre polos
+    const taper = 1.0 - 0.14 * uy - 0.06 * Math.exp(-uy * uy * 5.0);
+    const bendX = 0.09 * Math.sin(uy * 2.2 + seed);
+
+    // Bultos gruesos de la costra caramelizada + gránulos medianos + textura fina
+    const lump1 =
+      Math.sin(ux * 4.3 + uy * 3.1 + seed) *
+      Math.cos(uz * 4.7 - uy * 2.6 + seed * 0.7);
+    const lump2 =
+      Math.sin(ux * 8.9 - uz * 7.4 + seed * 1.9) *
+      Math.sin(uy * 8.2 + ux * 5.1 - seed);
+    const grit = Math.cos(ux * 16.5 + uy * 14.3 - uz * 15.1 + seed * 2.3);
+
+    const radialDisp = 1.0 + lump1 * 0.13 + lump2 * 0.068 + grit * 0.026;
+
+    const px = (ux * taper + bendX) * rx * radialDisp;
+    const py = uy * ry * (1.0 + lump1 * 0.07 + lump2 * 0.04);
+    const pz = uz * taper * rz * radialDisp;
+
+    posAttr.setXYZ(i, px, py, pz);
+
+    // Variación tonal en vértices: hendiduras más oscuras y crestas de azúcar sutilmente opacas
+    const bumpVal = lump1 * 0.65 + lump2 * 0.35;
+    const shade = THREE.MathUtils.clamp(0.90 + bumpVal * 0.16, 0.74, 1.04);
+    const sugarHighlight = bumpVal > 0.42 ? (bumpVal - 0.42) * 0.14 : 0.0;
+
+    colors[i * 3] = Math.min(1.0, shade + sugarHighlight);
+    colors[i * 3 + 1] = Math.min(1.0, shade + sugarHighlight * 0.92);
+    colors[i * 3 + 2] = Math.min(1.0, shade + sugarHighlight * 0.84);
   }
 
-  for (let i = 1; i < 6; i++) {
-    const t = i / 6;
-    const y = -halfLen + cr + t * (2 * (halfLen - cr));
-    const bulge = Math.sin(t * Math.PI) * 0.007;
-    pts.push(new THREE.Vector2(radius + bulge, y));
-  }
-
-  for (let i = 0; i <= 7; i++) {
-    const a = (i / 7) * (Math.PI * 0.5);
-    pts.push(new THREE.Vector2(radius - cr + Math.cos(a) * cr, halfLen - cr + Math.sin(a) * cr));
-  }
-
-  pts.push(new THREE.Vector2(radius * 0.72, halfLen));
-  pts.push(new THREE.Vector2(radius * 0.48, halfLen * 0.985));
-  pts.push(new THREE.Vector2(0.0, halfLen * 0.96));
-
-  const geom = new THREE.LatheGeometry(pts, 28);
+  geom.setAttribute('color', new THREE.BufferAttribute(colors, 3));
   geom.computeVertexNormals();
   return geom;
 }

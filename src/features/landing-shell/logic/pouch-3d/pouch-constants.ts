@@ -2,7 +2,7 @@
  * ============================================================================
  * QUÉ HACE:
  * Define las constantes de marca, proporciones geométricas del envase Doypack
- * GoManía (120 mm × 195 mm), paleta pastel para los malvaviscos y tipos de
+ * GoManía (120 mm × 195 mm), paleta vívida para el maní confitado y tipos de
  * estado del visor 3D.
  *
  * CON QUÉ MÓDULO CONECTA:
@@ -41,15 +41,14 @@ export const POUCH_CONFIG = {
   },
 } as const;
 
-/** Paleta estrictamente pastel y luminosa SOLO para los malvaviscos. */
-export const PASTEL_PALETTE: readonly THREE.Color[] = [
-  new THREE.Color('#B8F3D8'), // Verde menta pastel
-  new THREE.Color('#FFC7DF'), // Rosado pastel
-  new THREE.Color('#FFF1B5'), // Amarillo pastel
-  new THREE.Color('#BFE8FF'), // Celeste pastel
-  new THREE.Color('#E3CEFF'), // Lavanda pastel
-  new THREE.Color('#FFD9BE'), // Durazno pastel
-  new THREE.Color('#FFF8E6'), // Crema vainilla
+/** Paleta fuerte, vívida y ligeramente opaca para el maní confitado azucarado. */
+export const CANDIED_PEANUT_PALETTE: readonly THREE.Color[] = [
+  new THREE.Color('#D41926'), // Rojo intenso
+  new THREE.Color('#D19205'), // Amarillo mostaza fuerte
+  new THREE.Color('#D9117A'), // Fucsia fuerte
+  new THREE.Color('#8E4B18'), // Café vívido acaramelado
+  new THREE.Color('#6E1B94'), // Morado intenso
+  new THREE.Color('#4D9E1C'), // Verde intenso
 ];
 
 export type CameraViewPreset = 'front' | 'back' | 'bottom' | 'reset';

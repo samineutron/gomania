@@ -21,7 +21,7 @@ import * as THREE from 'three';
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js';
 import { RoomEnvironment } from 'three/examples/jsm/environments/RoomEnvironment.js';
 import {
-  PASTEL_PALETTE,
+  CANDIED_PEANUT_PALETTE,
   POUCH_CONFIG,
   type CameraViewPreset,
   type PouchViewerState,
@@ -32,7 +32,7 @@ import {
   buildPouchPanelGeometry,
   buildSeamEdgesGeometry,
 } from './pouch-geometry';
-import { populateMarshmallowsStrictlyInside } from './pouch-marshmallows';
+import { populateCandiedPeanutsStrictlyInside } from './pouch-marshmallows';
 import {
   createBackTextures,
   createBlueGussetTexture,
@@ -158,7 +158,7 @@ export async function initPouch3DViewer(rootEl: HTMLElement): Promise<() => void
   backFillLight.position.set(4.6, 3.2, -4.0);
   scene.add(backFillLight);
 
-  const cavityLight = new THREE.PointLight(0xffffff, 0.32, 4.0);
+  const cavityLight = new THREE.PointLight(0xffffff, 0.42, 4.0);
   cavityLight.position.set(-0.15, 1.15, 1.85);
   scene.add(cavityLight);
 
@@ -255,7 +255,7 @@ export async function initPouch3DViewer(rootEl: HTMLElement): Promise<() => void
   innerGussetMesh.position.y = 0.008;
   pouchGroup.add(innerGussetMesh);
 
-  const marshmallows = populateMarshmallowsStrictlyInside(pouchGroup);
+  const candiedPeanuts = populateCandiedPeanutsStrictlyInside(pouchGroup);
 
   const clearWindowGeom = buildPouchPanelGeometry(false, 52, 40, -0.0025, 0.13, 0.76, 0.10, 0.42);
   const clearFilmMat = new THREE.MeshPhysicalMaterial({
@@ -410,20 +410,22 @@ export async function initPouch3DViewer(rootEl: HTMLElement): Promise<() => void
     }
 
     if (state.animateColors) {
-      state.colorTime += dt * 0.44 * state.colorSpeed;
-      const nColors = PASTEL_PALETTE.length;
+      state.colorTime += dt * 0.20 * state.colorSpeed;
+      const nColors = CANDIED_PEANUT_PALETTE.length;
 
-      for (let i = 0; i < marshmallows.length; i++) {
-        const m = marshmallows[i];
+      for (let i = 0; i < candiedPeanuts.length; i++) {
+        const m = candiedPeanuts[i];
         const prog = m.phase + state.colorTime * m.speedFactor;
         const idxA = Math.floor(prog) % nColors;
         const idxB = (idxA + 1) % nColors;
         const frac = prog - Math.floor(prog);
-        const smoothT = 0.5 - 0.5 * Math.cos(frac * Math.PI);
+        // Mantiene cada color vívido puro el 65 % del ciclo y realiza el cruce suave en el 35 % final
+        const transitionT = frac < 0.65 ? 0 : (frac - 0.65) / 0.35;
+        const smoothT = 0.5 - 0.5 * Math.cos(transitionT * Math.PI);
 
         m.material.color.lerpColors(
-          PASTEL_PALETTE[m.sequence[idxA]],
-          PASTEL_PALETTE[m.sequence[idxB]],
+          CANDIED_PEANUT_PALETTE[m.sequence[idxA]],
+          CANDIED_PEANUT_PALETTE[m.sequence[idxB]],
           smoothT
         );
       }

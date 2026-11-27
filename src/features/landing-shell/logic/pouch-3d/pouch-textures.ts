@@ -1145,9 +1145,10 @@ export function createPouchBumpTexture(): THREE.CanvasTexture {
 }
 
 /**
- * Microtextura polvosa/aterciopelada para la superficie de los malvaviscos.
+ * Microtextura granulada y costrosa para simular el baño de azúcar caramelizada
+ * del maní confitado.
  */
-export function createSugarPowderBumpTexture(): THREE.CanvasTexture {
+export function createCandiedSugarBumpTexture(): THREE.CanvasTexture {
   const S = 256;
   const { canvas, ctx } = createCanvas2D(S, S);
   const img = ctx.createImageData(S, S);
@@ -1156,13 +1157,31 @@ export function createSugarPowderBumpTexture(): THREE.CanvasTexture {
   let s = 314159;
   for (let i = 0; i < data.length; i += 4) {
     s = (s * 16807) % 2147483647;
-    const v = 110 + (s % 46);
+    const v = 92 + (s % 76);
     data[i] = v;
     data[i + 1] = v;
     data[i + 2] = v;
     data[i + 3] = 255;
   }
   ctx.putImageData(img, 0, 0);
+
+  // Grumos de azúcar cristalizada de mayor relieve sobre el grano fino
+  let gs = 77177;
+  const rand = (): number => {
+    gs = (gs * 16807) % 2147483647;
+    return (gs - 1) / 2147483646;
+  };
+  for (let i = 0; i < 160; i++) {
+    const cx = rand() * S;
+    const cy = rand() * S;
+    const r = 3 + rand() * 8;
+    const lum = i % 2 === 0 ? 225 : 55;
+    const grad = ctx.createRadialGradient(cx, cy, 0, cx, cy, r);
+    grad.addColorStop(0, `rgba(${lum},${lum},${lum},0.55)`);
+    grad.addColorStop(1, 'rgba(128,128,128,0)');
+    ctx.fillStyle = grad;
+    ctx.fillRect(cx - r, cy - r, r * 2, r * 2);
+  }
 
   const tex = new THREE.CanvasTexture(canvas);
   tex.wrapS = THREE.RepeatWrapping;
