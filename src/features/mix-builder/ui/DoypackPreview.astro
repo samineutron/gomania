@@ -42,85 +42,218 @@
       -->
       <svg
         class="gm-doypack-shell-svg"
-        viewBox="0 0 260 340"
+        viewBox="0 0 240 390"
         fill="none"
         xmlns="http://www.w3.org/2000/svg"
         aria-hidden="true"
       >
         <defs>
-          <!-- Patrón de rayas verticales sutiles usando el color de marca activo -->
-          <pattern id="gmDoypackStripes" width="20" height="20" patternUnits="userSpaceOnUse">
-            <rect width="20" height="20" fill="var(--brand-pink)" />
-            <rect width="10" height="20" fill="#FFFFFF" fill-opacity="0.14" />
-          </pattern>
-          <!-- Máscara que recorta la ventana central transparente real -->
+          <!-- Degradado rosado principal del Doypack GoManía -->
+          <linearGradient id="gmDoypackPinkBg" x1="0" y1="0" x2="240" y2="390" gradientUnits="userSpaceOnUse">
+            <stop offset="0%" stop-color="#EE5D8A" />
+            <stop offset="50%" stop-color="#EC5886" />
+            <stop offset="100%" stop-color="#E44E7C" />
+          </linearGradient>
+
+          <!-- Sombreados sutiles de bordes laterales termosellados -->
+          <linearGradient id="gmDoypackSideShadeL" x1="0" y1="0" x2="18" y2="0" gradientUnits="userSpaceOnUse">
+            <stop offset="0%" stop-color="#7D1238" stop-opacity="0.28" />
+            <stop offset="100%" stop-color="#7D1238" stop-opacity="0" />
+          </linearGradient>
+          <linearGradient id="gmDoypackSideShadeR" x1="240" y1="0" x2="222" y2="0" gradientUnits="userSpaceOnUse">
+            <stop offset="0%" stop-color="#7D1238" stop-opacity="0.28" />
+            <stop offset="100%" stop-color="#7D1238" stop-opacity="0" />
+          </linearGradient>
+
+          <!-- Brillo volumétrico suave del vientre inferior -->
+          <radialGradient id="gmDoypackBellySheen" cx="46%" cy="56%" r="54%">
+            <stop offset="0%" stop-color="#FFFFFF" stop-opacity="0.12" />
+            <stop offset="65%" stop-color="#FFFFFF" stop-opacity="0" />
+            <stop offset="100%" stop-color="#8A143E" stop-opacity="0.16" />
+          </radialGradient>
+
+          <!-- Silueta exacta del empaque 3D con muescas laterales en V y esquinas suaves -->
+          <clipPath id="gmDoypackOutlineClip">
+            <path d="M8 0H232Q240 0 240 8V37L232 41L240 45V378Q240 388 228 389Q120 392 12 389Q0 388 0 378V45L8 41L0 37V8Q0 0 8 0Z" />
+          </clipPath>
+
+          <!-- Máscara real: recorta la ventana transparente tipo frijol y el orificio Euro-slot -->
           <mask id="gmDoypackWindowMask">
-            <rect x="0" y="0" width="260" height="340" fill="#FFFFFF" />
-            <rect x="46" y="122" width="168" height="142" rx="34" fill="#000000" />
+            <rect x="0" y="0" width="240" height="390" fill="#FFFFFF" />
+            <!-- Perforación superior Euro-slot -->
+            <path
+              d="M96.7 30.4A5.04 5.04 0 0 1 96.7 20.3H111.5A8.64 8.2 0 0 1 128.5 20.3H143.3A5.04 5.04 0 0 1 143.3 30.4Z"
+              fill="#000000"
+            />
+            <!-- Ventana frontal transparente en forma de frijol / sonrisa -->
+            <g transform="translate(106.8, 289.4) rotate(1.72)">
+              <path
+                d="M-60.2 -28.0C-28.7 -50.9 24.6 -46.9 58.8 -22.0C73.9 -4.0 69.8 31.0 41.0 44.9C9.6 55.9 -28.7 55.9 -53.4 40.9C-75.2 25.0 -76.6 -9.0 -60.2 -28.0Z"
+                fill="#000000"
+              />
+            </g>
           </mask>
+
+          <!-- Sello chileno "ALTO EN CALORÍAS" reutilizable -->
+          <g id="gmChileanOctagon">
+            <polygon points="14.5,-6.0 14.5,6.0 6.0,14.5 -6.0,14.5 -14.5,6.0 -14.5,-6.0 -6.0,-14.5 6.0,-14.5" fill="#FFFFFF" />
+            <polygon points="13.7,-5.7 13.7,5.7 5.7,13.7 -5.7,13.7 -13.7,5.7 -13.7,-5.7 -5.7,-13.7 5.7,-13.7" fill="#141414" />
+            <polygon points="12.5,-5.2 12.5,5.2 5.2,12.5 -5.2,12.5 -12.5,5.2 -12.5,-5.2 -5.2,-12.5 5.2,-12.5" fill="none" stroke="#FFFFFF" stroke-width="0.7" />
+            <text x="0" y="-3.3" text-anchor="middle" font-family="Oswald, Inter, sans-serif" font-weight="700" font-size="4.3" fill="#FFFFFF">ALTO EN</text>
+            <text x="0" y="1.4" text-anchor="middle" font-family="Oswald, Inter, sans-serif" font-weight="700" font-size="4.4" fill="#FFFFFF">CALORÍAS</text>
+            <rect x="-5.5" y="3.5" width="11" height="0.4" fill="rgba(255,255,255,0.65)" />
+            <text x="0" y="6.6" text-anchor="middle" font-family="Inter, sans-serif" font-weight="500" font-size="2.0" fill="#FFFFFF">Ministerio</text>
+            <text x="0" y="8.8" text-anchor="middle" font-family="Inter, sans-serif" font-weight="500" font-size="2.0" fill="#FFFFFF">de Salud</text>
+          </g>
+
+          <!-- Trazos curvos para textos vectoriales -->
+          <path id="gmLogoTaglineArc" d="M-325 326Q60 392 442 308" />
+          <path id="gmSealTopArc" d="M36.0 324.5A15.6 15.6 0 0 1 67.2 324.5" />
+          <path id="gmSealBottomArc" d="M35.0 325.0A16.6 16.6 0 0 0 68.2 325.0" />
         </defs>
 
-        <!-- Cuerpo exterior de la bolsa Doypack con abertura central transparente -->
-        <g mask="url(#gmDoypackWindowMask)">
-          <!-- Silueta stand-up pouch -->
-          <path
-            d="M28 18C28 10 34 6 44 6H216C226 6 232 10 232 18L244 306C244 322 230 334 212 334H48C30 334 16 322 16 306L28 18Z"
-            fill="url(#gmDoypackStripes)"
-          />
-          <!-- Sello superior + muesca abre-fácil + cierre ziploc -->
-          <rect x="27" y="14" width="206" height="26" rx="4" fill="#FFFFFF" fill-opacity="0.18" />
-          <line x1="30" y1="48" x2="230" y2="48" stroke="#FFFFFF" stroke-opacity="0.55" stroke-width="2.5" stroke-dasharray="6 4" />
-          <circle cx="130" cy="24" r="6" fill="var(--bg-surface)" fill-opacity="0.9" />
+        <!-- Cuerpo exterior de la bolsa Doypack recortado por silueta y máscara -->
+        <g clip-path="url(#gmDoypackOutlineClip)" mask="url(#gmDoypackWindowMask)">
+          <!-- Fondo base rosado -->
+          <rect x="0" y="0" width="240" height="390" fill="url(#gmDoypackPinkBg)" />
 
-          <!-- Sello inferior de base Doypack -->
-          <path
-            d="M36 312C76 296 184 296 224 312"
-            stroke="#FFFFFF"
-            stroke-opacity="0.45"
-            stroke-width="2.5"
-            stroke-linecap="round"
-          />
+          <!-- Patrón sutil de gomitas/dulces en contorno blanco translúcido -->
+          <g stroke="#FFE8F0" stroke-opacity="0.34" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round" fill="none">
+            <circle cx="28" cy="112" r="5" /><circle cx="28" cy="112" r="2.2" />
+            <path d="M56 88c-3-4-9-2-8 3 1 4 6 4 8 1 2 3 7 3 8-1 1-5-5-7-8-3Z" />
+            <circle cx="198" cy="72" r="4.5" /><circle cx="198" cy="72" r="1.8" />
+            <path d="M214 178c-3-3-7-1-7 3 0 3 5 5 7 7 2-2 7-4 7-7 0-4-4-6-7-3Z" />
+            <path d="M24 196l4-5 4 5-4 5Z" />
+            <ellipse cx="44" cy="236" rx="6" ry="3.5" transform="rotate(-24 44 236)" />
+            <circle cx="212" cy="234" r="4.8" /><circle cx="212" cy="234" r="2.0" />
+            <path d="M188 192c4-3 8 1 5 6-2 3-7 2-5-6Z" />
+            <path d="M196 276c-3-4-9-2-8 3 1 4 6 4 8 1 2 3 7 3 8-1 1-5-5-7-8-3Z" />
+            <ellipse cx="22" cy="296" rx="5.5" ry="3.2" transform="rotate(28 22 296)" />
+            <circle cx="218" cy="340" r="4.2" /><circle cx="218" cy="340" r="1.8" />
+          </g>
 
-          <!-- Etiqueta discreta de marca en el borde derecho -->
-          <rect x="172" y="58" width="52" height="24" rx="12" fill="var(--bg-surface)" />
-          <text
-            x="198"
-            y="74"
-            text-anchor="middle"
-            font-family="Fredoka, sans-serif"
-            font-weight="700"
-            font-size="11"
-            fill="var(--brand-pink)"
-          >
-            GoManía
-          </text>
+          <!-- 11 franjas verticales superiores con punta redondeada -->
+          <g>
+            <path d="M0 0H21.82V56.5A10.91 10.91 0 0 1 0 56.5Z" fill="#EE6A94" />
+            <path d="M21.82 0H43.64V56.5A10.91 10.91 0 0 1 21.82 56.5Z" fill="#F8C5D6" />
+            <path d="M43.64 0H65.45V56.5A10.91 10.91 0 0 1 43.64 56.5Z" fill="#EE6A94" />
+            <path d="M65.45 0H87.27V56.5A10.91 10.91 0 0 1 65.45 56.5Z" fill="#F8C5D6" />
+            <path d="M87.27 0H109.09V56.5A10.91 10.91 0 0 1 87.27 56.5Z" fill="#EE6A94" />
+            <path d="M109.09 0H130.91V56.5A10.91 10.91 0 0 1 109.09 56.5Z" fill="#F8C5D6" />
+            <path d="M130.91 0H152.73V56.5A10.91 10.91 0 0 1 130.91 56.5Z" fill="#EE6A94" />
+            <path d="M152.73 0H174.55V56.5A10.91 10.91 0 0 1 152.73 56.5Z" fill="#F8C5D6" />
+            <path d="M174.55 0H196.36V56.5A10.91 10.91 0 0 1 174.55 56.5Z" fill="#EE6A94" />
+            <path d="M196.36 0H218.18V56.5A10.91 10.91 0 0 1 196.36 56.5Z" fill="#F8C5D6" />
+            <path d="M218.18 0H240V56.5A10.91 10.91 0 0 1 218.18 56.5Z" fill="#EE6A94" />
+          </g>
 
-          <!-- Sello de peso inferior -->
-          <rect x="92" y="280" width="76" height="24" rx="12" fill="var(--cta-primary)" />
-          <text
-            x="130"
-            y="296"
-            text-anchor="middle"
-            font-family="Fredoka, sans-serif"
-            font-weight="700"
-            font-size="12"
-            fill="var(--text-on-brand)"
-          >
-            80 g
-          </text>
+          <!-- 11 franjas verticales inferiores con punta redondeada -->
+          <g>
+            <path d="M0 390V355.7A10.91 10.91 0 0 1 21.82 355.7V390Z" fill="#EE6A94" />
+            <path d="M21.82 390V355.7A10.91 10.91 0 0 1 43.64 355.7V390Z" fill="#F8C5D6" />
+            <path d="M43.64 390V355.7A10.91 10.91 0 0 1 65.45 355.7V390Z" fill="#EE6A94" />
+            <path d="M65.45 390V355.7A10.91 10.91 0 0 1 87.27 355.7V390Z" fill="#F8C5D6" />
+            <path d="M87.27 390V355.7A10.91 10.91 0 0 1 109.09 355.7V390Z" fill="#EE6A94" />
+            <path d="M109.09 390V355.7A10.91 10.91 0 0 1 130.91 355.7V390Z" fill="#F8C5D6" />
+            <path d="M130.91 390V355.7A10.91 10.91 0 0 1 152.73 355.7V390Z" fill="#EE6A94" />
+            <path d="M152.73 390V355.7A10.91 10.91 0 0 1 174.55 355.7V390Z" fill="#F8C5D6" />
+            <path d="M174.55 390V355.7A10.91 10.91 0 0 1 196.36 355.7V390Z" fill="#EE6A94" />
+            <path d="M196.36 390V355.7A10.91 10.91 0 0 1 218.18 355.7V390Z" fill="#F8C5D6" />
+            <path d="M218.18 390V355.7A10.91 10.91 0 0 1 240 355.7V390Z" fill="#EE6A94" />
+          </g>
+
+          <!-- Línea de cierre resellable (zipper) + sombreado lateral de termosellado -->
+          <rect x="14" y="52.4" width="212" height="1.0" fill="rgba(255,255,255,0.28)" />
+          <rect x="14" y="53.8" width="212" height="1.1" fill="rgba(160,28,74,0.22)" />
+          <rect x="0" y="0" width="18" height="390" fill="url(#gmDoypackSideShadeL)" />
+          <rect x="222" y="0" width="18" height="390" fill="url(#gmDoypackSideShadeR)" />
+          <rect x="0" y="0" width="240" height="390" fill="url(#gmDoypackBellySheen)" />
+
+          <!-- 3 Octágonos "ALTO EN CALORÍAS" -->
+          <use href="#gmChileanOctagon" transform="translate(164.4, 94.4)" />
+          <use href="#gmChileanOctagon" transform="translate(205.2, 94.4)" />
+          <use href="#gmChileanOctagon" transform="translate(205.2, 137.3)" />
+
+          <!-- Logotipo vectorial oficial GOMANÍA + MAS DE 100 SABORES -->
+          <g transform="translate(105.1, 177.5) rotate(-2.98) scale(0.1453)">
+            <!-- Capa 1: Contorno blanco troquelado continuo -->
+            <g fill="#FFFFFF" stroke="#FFFFFF" stroke-linejoin="round" stroke-linecap="round">
+              <rect x="-340" y="-255" width="695" height="495" rx="95" stroke="none" />
+              <path d="M-340 175C-120 170 180 225 420 200L445 345C180 415 -120 345 -335 330Z" stroke="none" />
+              <g stroke-width="74">
+                <path d="M-142 -334C-225 -354 -345 -340 -372 -268C-396 -204 -384 -108 -338 -74C-290 -40 -195 -52 -135 -80L-140 -214L-244 -198L-238 -138C-258 -135 -264 -158 -264 -194C-264 -234 -248 -252 -198 -248L-146 -240Z" />
+                <path d="M-36 -254C26 -256 48 -222 50 -162C52 -100 30 -70 -30 -68C-94 -66 -114 -98 -114 -160C-114 -224 -92 -252 -36 -254Z" />
+                <path d="M74 -330Q136 -342 198 -330L222 -232L246 -332Q312 -332 368 -308L364 -62L272 -66L270 -172L216 -106L166 -174L166 -70L72 -72Z" />
+                <path d="M-314 -32Q-258 -44 -200 -24L-158 194L-244 194L-246 162L-274 164L-276 198L-358 214Z" />
+                <path d="M-136 -24Q-102 -32 -64 -24L-36 56L-32 -20Q8 -28 46 -16L42 232L-38 224L-64 152L-68 214L-138 206Z" />
+                <path d="M78 56Q118 48 158 56L158 250L84 244Z" />
+                <path d="M132 -46C164 -56 180 -20 162 12C144 42 102 50 82 34C68 22 74 2 94 -4C114 -10 118 -24 122 -36C124 -42 128 -45 132 -46Z" />
+                <path d="M214 -36Q282 -52 346 -34L422 224L330 248L320 198L292 202L296 252L198 256Z" />
+                <path d="M-348 244C-190 200 -50 272 130 294C270 310 368 286 440 246L466 298C378 346 260 368 114 348C-60 322 -196 238 -342 274Z" />
+              </g>
+              <text font-family="Fredoka, Inter, sans-serif" font-weight="700" font-size="64" letter-spacing="3" stroke-width="64">
+                <textPath href="#gmLogoTaglineArc" startOffset="50%" text-anchor="middle">MAS DE 100 SABORES</textPath>
+              </text>
+            </g>
+
+            <!-- Capa 2: Rellenos de marca celeste y rosado -->
+            <path d="M-142 -334C-225 -354 -345 -340 -372 -268C-396 -204 -384 -108 -338 -74C-290 -40 -195 -52 -135 -80L-140 -214L-244 -198L-238 -138C-258 -135 -264 -158 -264 -194C-264 -234 -248 -252 -198 -248L-146 -240Z" fill="#0093C4" />
+            <path d="M-36 -254C26 -256 48 -222 50 -162C52 -100 30 -70 -30 -68C-94 -66 -114 -98 -114 -160C-114 -224 -92 -252 -36 -254Z" fill="#E9557D" />
+            <path d="M74 -330Q136 -342 198 -330L222 -232L246 -332Q312 -332 368 -308L364 -62L272 -66L270 -172L216 -106L166 -174L166 -70L72 -72Z" fill="#0093C4" />
+            <path d="M-314 -32Q-258 -44 -200 -24L-158 194L-244 194L-246 162L-274 164L-276 198L-358 214Z" fill="#E9557D" />
+            <path d="M-136 -24Q-102 -32 -64 -24L-36 56L-32 -20Q8 -28 46 -16L42 232L-38 224L-64 152L-68 214L-138 206Z" fill="#0093C4" />
+            <path d="M78 56Q118 48 158 56L158 250L84 244Z" fill="#0093C4" />
+            <path d="M132 -46C164 -56 180 -20 162 12C144 42 102 50 82 34C68 22 74 2 94 -4C114 -10 118 -24 122 -36C124 -42 128 -45 132 -46Z" fill="#0093C4" />
+            <path d="M214 -36Q282 -52 346 -34L422 224L330 248L320 198L292 202L296 252L198 256Z" fill="#E9557D" />
+            <path d="M-348 244C-190 200 -50 272 130 294C270 310 368 286 440 246L466 298C378 346 260 368 114 348C-60 322 -196 238 -342 274Z" fill="#0093C4" />
+
+            <!-- Capa 3: Corazones/frijoles internos blancos + brillo + texto curvo celeste -->
+            <g fill="#FFFFFF">
+              <path d="M-31 -172.7C-7.9 -190.7 16.0 -166.9 5.1 -143.1C-5.8 -123.7 -23.4 -120.3 -31 -120.3C-38.6 -120.3 -56.2 -123.7 -67.1 -143.1C-78.0 -166.9 -54.1 -190.7 -31 -172.7Z" />
+              <path d="M-258 54.8C-234.9 37.3 -211.0 60.5 -221.9 83.6C-232.8 102.4 -250.4 105.7 -258 105.7C-265.6 105.7 -283.2 102.4 -294.1 83.6C-305.0 60.5 -281.1 37.3 -258 54.8Z" />
+              <path d="M298 80.2C327.7 57.9 358.5 87.3 344.4 116.7C330.4 140.6 307.7 144.8 298 144.8C288.3 144.8 265.6 140.6 251.6 116.7C237.5 87.3 268.3 57.9 298 80.2Z" />
+            </g>
+            <path d="M152 -26C160 -10 152 10 134 22" stroke="#FFFFFF" stroke-width="7" stroke-linecap="round" fill="none" />
+            <text font-family="Fredoka, Inter, sans-serif" font-weight="700" font-size="64" letter-spacing="3" fill="#0093C4" stroke="#0093C4" stroke-width="4" stroke-linejoin="round">
+              <textPath href="#gmLogoTaglineArc" startOffset="50%" text-anchor="middle">MAS DE 100 SABORES</textPath>
+            </text>
+          </g>
+
+          <!-- Peso neto 80gr abajo a la derecha -->
+          <g text-anchor="middle" fill="#FFFFFF">
+            <text x="197.3" y="313" font-family="Fredoka, Inter, sans-serif" font-weight="700" font-size="14.5">80gr</text>
+            <text x="197.3" y="324.5" font-family="Inter, sans-serif" font-weight="700" font-size="5.5">Peso neto</text>
+          </g>
         </g>
 
-        <!-- Borde limpio alrededor de la ventana central transparente -->
-        <rect
-          x="46"
-          y="122"
-          width="168"
-          height="142"
-          rx="34"
-          stroke="#FFFFFF"
-          stroke-width="4"
-          fill="none"
-        />
+        <!-- Borde sutil alrededor de la ventana transparente tipo frijol -->
+        <g transform="translate(106.8, 289.4) rotate(1.72)">
+          <path
+            d="M-60.2 -28.0C-28.7 -50.9 24.6 -46.9 58.8 -22.0C73.9 -4.0 69.8 31.0 41.0 44.9C9.6 55.9 -28.7 55.9 -53.4 40.9C-75.2 25.0 -76.6 -9.0 -60.2 -28.0Z"
+            stroke="rgba(255, 255, 255, 0.42)"
+            stroke-width="1.5"
+            fill="none"
+          />
+        </g>
+
+        <!-- Sello festoneado "EMPRESA FUNDADA POR MUJERES" en esquina inferior izquierda de la ventana -->
+        <g>
+          <circle cx="51.6" cy="324.5" r="21.1" fill="#FFFFFF" stroke="#F7CAD9" stroke-width="1.2" stroke-dasharray="2.4 1.3" />
+          <circle cx="51.6" cy="324.5" r="19.6" fill="#FFFFFF" />
+          <!-- Corazón central -->
+          <path
+            d="M51.6 331.4C41.7 324.3 42.8 314.1 51.6 321.2C60.4 314.1 61.5 324.3 51.6 331.4Z"
+            fill="#E9557D"
+          />
+          <text font-family="Inter, sans-serif" font-weight="800" font-size="3.5" fill="#2B1D25" letter-spacing="0.25">
+            <textPath href="#gmSealTopArc" startOffset="50%" text-anchor="middle">EMPRESA FUNDADA</textPath>
+          </text>
+          <text font-family="Inter, sans-serif" font-weight="800" font-size="3.5" fill="#2B1D25" letter-spacing="0.35">
+            <textPath href="#gmSealBottomArc" startOffset="50%" text-anchor="middle">POR MUJERES</textPath>
+          </text>
+          <circle cx="36.2" cy="325.3" r="0.7" fill="#2B1D25" />
+          <circle cx="67.0" cy="325.3" r="0.7" fill="#2B1D25" />
+        </g>
       </svg>
 
       <!-- CAPA INTERNA: Ventana central transparente que muestra `imgProducto` -->
