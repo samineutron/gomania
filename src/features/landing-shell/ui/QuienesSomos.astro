@@ -274,10 +274,34 @@ const totalMilestones = milestones.length;
   }
 
   .gm-story__step-num {
+    display: inline-block;
+    padding: 2px 8px;
+    border-radius: var(--radius-pill);
     font-family: var(--font-display);
     font-size: var(--text-xs);
     font-weight: 700;
-    opacity: 0.85;
+    background-color: var(--brand-pink-soft);
+    color: var(--brand-pink-dark);
+  }
+
+  .gm-story__step-btn:nth-child(2) .gm-story__step-num {
+    background-color: var(--brand-sky-soft);
+    color: var(--brand-sky-dark);
+  }
+
+  .gm-story__step-btn:nth-child(3) .gm-story__step-num {
+    background-color: var(--candy-lilac-bg, #EDE9FE);
+    color: var(--candy-lilac-text, #5B21B6);
+  }
+
+  .gm-story__step-btn:nth-child(4) .gm-story__step-num {
+    background-color: var(--candy-mint-bg, #D1FAE5);
+    color: var(--candy-mint-text, #065F46);
+  }
+
+  .gm-story__step-btn.is-active .gm-story__step-num {
+    background-color: rgba(255, 255, 255, 0.24);
+    color: var(--cta-primary-text);
   }
 
   .gm-story__step-label {

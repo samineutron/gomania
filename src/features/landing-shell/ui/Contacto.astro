@@ -146,6 +146,24 @@ const whatsappDisplay = formatChilePhoneDisplay(SOCIAL_LINKS.whatsappNumber);
     background-color: var(--bg-surface);
     border: var(--border-width) solid var(--border-color);
     box-shadow: var(--shadow-sm);
+    transition: border-color var(--transition-fast), box-shadow var(--transition-fast), transform var(--transition-fast);
+  }
+
+  .gm-contact__card:hover {
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-md);
+  }
+
+  .gm-contact__card:nth-child(1):hover {
+    border-color: var(--state-success);
+  }
+
+  .gm-contact__card:nth-child(2):hover {
+    border-color: var(--brand-pink);
+  }
+
+  .gm-contact__card:nth-child(3):hover {
+    border-color: var(--brand-sky);
   }
 
   .gm-contact__icon {

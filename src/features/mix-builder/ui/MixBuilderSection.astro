@@ -616,9 +616,13 @@ import KraftBagPreview from './KraftBagPreview.astro';
     color: var(--brand-pink);
   }
 
+  #mix-builder-module .gm-mb-profile-step .gm-mb-step-num {
+    background-color: var(--brand-sky);
+  }
+
   #mix-builder-module .gm-mb-profile-icon--salty {
-    background-color: color-mix(in srgb, var(--kraft-bag) 28%, var(--bg-surface));
-    color: var(--text-main);
+    background-color: var(--candy-peach-bg, #FFEDD5);
+    color: var(--candy-peach-text, #9A3412);
   }
 
   #mix-builder-module .gm-mb-profile-copy {
@@ -850,13 +854,13 @@ import KraftBagPreview from './KraftBagPreview.astro';
   }
 
   #mix-builder-module .gm-mb-pill--kraft {
-    background-color: color-mix(in srgb, var(--kraft-bag) 28%, var(--bg-surface));
-    color: var(--text-main);
+    background-color: var(--candy-peach-bg, #FFEDD5);
+    color: var(--candy-peach-text, #9A3412);
   }
 
   #mix-builder-module .gm-mb-pill--profile {
-    background-color: color-mix(in srgb, var(--brand-sky) 16%, var(--bg-surface));
-    color: var(--text-main);
+    background-color: var(--candy-mint-bg, #D1FAE5);
+    color: var(--candy-mint-text, #065F46);
   }
 
   #mix-builder-module .gm-mb-pill--profile[data-profile='pending'] {
@@ -903,7 +907,7 @@ import KraftBagPreview from './KraftBagPreview.astro';
   #mix-builder-module .gm-kraft-progress-fill {
     height: 100%;
     border-radius: 999px;
-    background-color: var(--brand-pink);
+    background: linear-gradient(90deg, var(--brand-pink) 0%, var(--brand-sky) 100%);
     transition: width 0.25s ease;
   }
 

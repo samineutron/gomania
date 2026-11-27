@@ -66,6 +66,17 @@
   --kraft-bag-dark: #A67B4F;
   --kraft-bag-text: #3B2614;
 
+  /* Acentos dulces variados (manteniendo Rosado y Celeste como principales) */
+  --brand-sky-deep: #0B5E88;
+  --candy-lemon-bg: #FEF3C7;
+  --candy-lemon-text: #92400E;
+  --candy-mint-bg: #D1FAE5;
+  --candy-mint-text: #065F46;
+  --candy-lilac-bg: #EDE9FE;
+  --candy-lilac-text: #5B21B6;
+  --candy-peach-bg: #FFEDD5;
+  --candy-peach-text: #9A3412;
+
   /* Estados semánticos accesibles (WCAG AA+) */
   --state-success: #15803D;
   --state-success-bg: #DCFCE7;

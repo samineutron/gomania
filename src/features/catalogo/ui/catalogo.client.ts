@@ -53,11 +53,11 @@ const FALLBACK_STICKER_SVG =
   'data:image/svg+xml;charset=UTF-8,' +
   encodeURIComponent(
     '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 160 160" fill="none">' +
-      '<rect width="160" height="160" rx="28" fill="#FFF2F5"/>' +
-      '<circle cx="80" cy="76" r="42" fill="#F44870" opacity="0.14"/>' +
-      '<circle cx="80" cy="76" r="28" fill="#28AAE1" opacity="0.18"/>' +
+      '<circle cx="80" cy="76" r="46" fill="#FFFFFF" fill-opacity="0.88"/>' +
+      '<circle cx="80" cy="76" r="36" fill="#F44870" opacity="0.14"/>' +
+      '<circle cx="80" cy="76" r="24" fill="#28AAE1" opacity="0.18"/>' +
       '<text x="80" y="84" text-anchor="middle" font-family="sans-serif" font-weight="700" font-size="22" fill="#F44870">G&amp;M</text>' +
-      '<text x="80" y="132" text-anchor="middle" font-family="sans-serif" font-size="11" fill="#4B5563">Foto en camino</text>' +
+      '<text x="80" y="138" text-anchor="middle" font-family="sans-serif" font-weight="600" font-size="11" fill="#4B5563">Foto en camino</text>' +
     '</svg>'
   );
 
@@ -275,6 +275,7 @@ export function initCatalogoSection(): void {
     // 1. Contenedor de imagen `imgCalcomania` con carga lazy y fallback local
     const mediaWrap = document.createElement('div');
     mediaWrap.className = 'gm-cat-card-media';
+    mediaWrap.dataset.category = product.categoria;
 
     const img = document.createElement('img');
     img.className = 'gm-cat-card-img';
@@ -317,6 +318,7 @@ export function initCatalogoSection(): void {
 
     const typeBadge = document.createElement('span');
     typeBadge.className = 'gm-cat-badge gm-cat-badge--type';
+    typeBadge.dataset.type = product.tipo;
     typeBadge.textContent = TYPE_LABELS[product.tipo];
 
     const catBadge = document.createElement('span');

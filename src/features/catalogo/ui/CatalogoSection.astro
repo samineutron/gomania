@@ -555,6 +555,18 @@
     padding: 0.75rem;
   }
 
+  #catalogo-module .gm-cat-card-media[data-category='dulce'] {
+    background-color: #FFF1F5;
+  }
+
+  #catalogo-module .gm-cat-card-media[data-category='acido'] {
+    background-color: #FEFCE8;
+  }
+
+  #catalogo-module .gm-cat-card-media[data-category='salado'] {
+    background-color: #FFF7ED;
+  }
+
   #catalogo-module .gm-cat-card-img {
     width: 100%;
     height: 100%;
@@ -615,19 +627,29 @@
     color: var(--text-main);
   }
 
+  #catalogo-module .gm-cat-badge--type[data-type='gomita'] {
+    background-color: var(--candy-lilac-bg, #EDE9FE);
+    color: var(--candy-lilac-text, #5B21B6);
+  }
+
+  #catalogo-module .gm-cat-badge--type[data-type='mani'] {
+    background-color: var(--brand-sky-soft, #E6F7FE);
+    color: var(--brand-sky-dark, #1689BC);
+  }
+
   #catalogo-module .gm-cat-badge--dulce {
     background-color: color-mix(in srgb, var(--brand-pink) 14%, var(--bg-surface));
-    color: var(--brand-pink);
+    color: var(--brand-pink-dark, var(--brand-pink));
   }
 
   #catalogo-module .gm-cat-badge--acido {
-    background-color: color-mix(in srgb, var(--brand-sky) 16%, var(--bg-surface));
-    color: var(--text-main);
+    background-color: var(--candy-lemon-bg, #FEF3C7);
+    color: var(--candy-lemon-text, #92400E);
   }
 
   #catalogo-module .gm-cat-badge--salado {
-    background-color: color-mix(in srgb, var(--kraft-bag) 26%, var(--bg-surface));
-    color: var(--text-main);
+    background-color: var(--candy-peach-bg, #FFEDD5);
+    color: var(--candy-peach-text, #9A3412);
   }
 
   #catalogo-module .gm-cat-card-title {
