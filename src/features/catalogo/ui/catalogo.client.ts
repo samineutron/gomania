@@ -32,6 +32,7 @@ import type {
 } from '../../../contracts/catalogo.contract';
 import type { MixContextDTO } from '../../../contracts/mix-builder.contract';
 import { eventBus } from '../../../shared/event-bus';
+import { burstButtonConfetti, showCandyToast } from '../../../shared/motion-fx';
 import { catalogoService } from '../index';
 import {
   CATEGORY_LABELS,
@@ -155,6 +156,14 @@ export function initCatalogoSection(): void {
     errorMessage: null,
   };
 
+  let shouldStaggerCards = true;
+  let pendingConfettiOrigin: {
+    productId: string;
+    rect: DOMRect;
+    category: ProductDTO['categoria'];
+    expiresAt: number;
+  } | null = null;
+
   /** Crea las 8 tarjetas skeleton del estado de carga. */
   function renderSkeletons(): void {
     if (!loadingGrid) return;
@@ -192,6 +201,7 @@ export function initCatalogoSection(): void {
           ...state.filter,
           tipo,
         });
+        shouldStaggerCards = true;
         renderTypeChips();
         renderCategoryChips();
         renderProducts();
@@ -230,6 +240,7 @@ export function initCatalogoSection(): void {
           ...state.filter,
           categoria: cat,
         };
+        shouldStaggerCards = true;
         renderCategoryChips();
         renderProducts();
       });
@@ -371,6 +382,13 @@ export function initCatalogoSection(): void {
 
     if (evalState.canSelect) {
       actionBtn.addEventListener('click', () => {
+        pendingConfettiOrigin = {
+          productId: product.id,
+          rect: actionBtn.getBoundingClientRect(),
+          category: product.categoria,
+          expiresAt: Date.now() + 2500,
+        };
+
         // Emitimos evento desacoplado hacia `mix-builder`
         eventBus.emit('catalogo:saborSeleccionado', { productId: product.id });
 
@@ -444,9 +462,17 @@ export function initCatalogoSection(): void {
     productsGrid.innerHTML = '';
 
     const fragment = document.createDocumentFragment();
-    for (const product of visibleProducts) {
-      fragment.appendChild(createProductCard(product));
-    }
+    const animateEntrance = shouldStaggerCards;
+    shouldStaggerCards = false;
+
+    visibleProducts.forEach((product, idx) => {
+      const card = createProductCard(product);
+      if (animateEntrance) {
+        card.classList.add('gm-cat-card--enter');
+        card.style.setProperty('--stagger-idx', String(Math.min(idx, 10)));
+      }
+      fragment.appendChild(card);
+    });
     productsGrid.appendChild(fragment);
   }
 
@@ -460,6 +486,7 @@ export function initCatalogoSection(): void {
     state.allProducts = result.products;
     state.errorMessage = result.errorMessage;
     state.isLoading = false;
+    shouldStaggerCards = true;
 
     renderProducts();
   }
@@ -493,6 +520,7 @@ export function initCatalogoSection(): void {
     if (clearSearchBtn) {
       clearSearchBtn.hidden = value.trim().length === 0;
     }
+    shouldStaggerCards = true;
     renderProducts();
   });
 
@@ -501,15 +529,20 @@ export function initCatalogoSection(): void {
     state.filter = { ...state.filter, query: '' };
     clearSearchBtn.hidden = true;
     searchInput.focus();
+    shouldStaggerCards = true;
     renderProducts();
   });
 
   hideIncompatibleInput?.addEventListener('change', () => {
     state.hideIncompatible = hideIncompatibleInput.checked;
+    shouldStaggerCards = true;
     renderProducts();
   });
 
-  resetFiltersBtn?.addEventListener('click', resetAllFilters);
+  resetFiltersBtn?.addEventListener('click', () => {
+    shouldStaggerCards = true;
+    resetAllFilters();
+  });
 
   retryBtn?.addEventListener('click', () => {
     void loadInventory();
@@ -519,7 +552,40 @@ export function initCatalogoSection(): void {
   // SUSCRIPCIÓN AL EVENTBUS DESACOPLADO (ESCUCHA A `mix-builder`)
   // ==========================================================================
   eventBus.on('mix:contextoActualizado', (mixContext) => {
+    const prevCount = state.mixContext?.selectedIds.length ?? 0;
     state.mixContext = mixContext;
+
+    if (
+      pendingConfettiOrigin &&
+      Date.now() <= pendingConfettiOrigin.expiresAt &&
+      mixContext.tier &&
+      mixContext.selectedIds.length >= mixContext.tier.maxFlavors &&
+      mixContext.selectedIds.length > prevCount &&
+      mixContext.selectedIds.includes(pendingConfettiOrigin.productId)
+    ) {
+      const tone =
+        pendingConfettiOrigin.category === 'acido'
+          ? 'acid'
+          : pendingConfettiOrigin.category === 'salado'
+            ? 'salty'
+            : 'party';
+      burstButtonConfetti(pendingConfettiOrigin.rect, tone);
+      pendingConfettiOrigin = null;
+
+      const is80g = mixContext.tier.id === '80g';
+      showCandyToast({
+        message: is80g
+          ? '¡Bolsita de 80 g completa! Lista para añadir al carrito.'
+          : `¡Bolsa ${mixContext.tier.label} completa (${mixContext.tier.maxFlavors}/${mixContext.tier.maxFlavors} sabores)!`,
+        tone: 'sky',
+        actionLabel: 'Ir a mi bolsa',
+        onAction: () => {
+          const armador = document.getElementById('armador-mix');
+          armador?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        },
+      });
+    }
+
     renderMixBanner();
     renderProducts();
   });

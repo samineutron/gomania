@@ -36,6 +36,7 @@ import type {
 } from '../../../contracts/mix-builder.contract';
 import { BAG_TIERS, formatClp } from '../../../shared/config';
 import { eventBus } from '../../../shared/event-bus';
+import { showCandyToast, triggerSpringClass } from '../../../shared/motion-fx';
 import {
   createFallbackProductFromMixFlavor,
   productLookup,
@@ -131,6 +132,8 @@ export function initMixBuilderSection(): void {
 
   // Vistas de empaque: Doypack (80g) y Kraft (500g+)
   const doypackView = root.querySelector<HTMLElement>('[data-mb-doypack-view]');
+  const doypackPouch = root.querySelector<HTMLElement>('[data-mb-doypack-pouch]');
+  const doypackStickerSlot = root.querySelector<HTMLElement>('[data-mb-doypack-sticker-slot]');
   const doypackProductImg = root.querySelector<HTMLImageElement>('[data-mb-doypack-product]');
   const doypackEmpty = root.querySelector<HTMLElement>('[data-mb-doypack-empty]');
   const doypackStickerImg = root.querySelector<HTMLImageElement>('[data-mb-doypack-sticker]');
@@ -140,6 +143,7 @@ export function initMixBuilderSection(): void {
   const doypackClearBtn = root.querySelector<HTMLButtonElement>('[data-mb-doypack-clear]');
 
   const kraftView = root.querySelector<HTMLElement>('[data-mb-kraft-view]');
+  const kraftSvg = root.querySelector<SVGElement>('[data-mb-kraft-svg]');
   const kraftWeightText = root.querySelector<SVGTextElement>('[data-mb-kraft-weight]');
   const kraftTierBadge = root.querySelector<HTMLElement>('[data-mb-kraft-tier-badge]');
   const kraftProfileBadge = root.querySelector<HTMLElement>('[data-mb-kraft-profile-badge]');
@@ -363,6 +367,7 @@ export function initMixBuilderSection(): void {
     if (kraftProgressFill) {
       const pct = Math.min(100, Math.round((count / Math.max(1, max)) * 100));
       kraftProgressFill.style.width = `${pct}%`;
+      kraftProgressFill.classList.toggle('is-complete', count >= max && count > 0);
     }
 
     // Estado vacío vs. chips removibles
@@ -488,6 +493,7 @@ export function initMixBuilderSection(): void {
 
     // Barra fija inferior en móvil
     if (mobileBar && mobileTitle && mobileProgress && mobileSubmitBtn && mobileSubmitText) {
+      mobileBar.classList.toggle('is-ready', validation.canSubmit);
       mobileTitle.textContent = `${state.tier.label} · ${priceLabel}`;
 
       if (requiresProfileSelection(state.tier) && (!state.profile || state.profile === 'libre')) {
@@ -678,6 +684,18 @@ export function initMixBuilderSection(): void {
     }
 
     renderAll(true);
+
+    if (isDoypackTier(state.tier)) {
+      triggerSpringClass(doypackPouch, 'gm-spring-pop');
+      triggerSpringClass(doypackStickerSlot, 'gm-spring-pop');
+    } else {
+      triggerSpringClass(kraftSvg, 'gm-spring-pop');
+    }
+
+    if (state.selectedFlavors.length >= state.tier.maxFlavors) {
+      triggerSpringClass(mainCtaBtn, 'is-ready-pulse', 1000);
+      triggerSpringClass(mobileSubmitBtn, 'is-ready-pulse', 1000);
+    }
   }
 
   /** Precarga una bolsa existente al recibir `carrito:editarItem`. */
@@ -757,6 +775,17 @@ export function initMixBuilderSection(): void {
     );
 
     renderAll(true);
+
+    showCandyToast({
+      message: wasEdit
+        ? `¡Bolsa ${item.tierId} actualizada en tu carrito!`
+        : `¡Bolsa ${item.tierId} agregada al carrito!`,
+      tone: 'mint',
+      actionLabel: 'Abrir carrito',
+      onAction: () => {
+        eventBus.emit('carrito:abrirDrawer', { open: true });
+      },
+    });
 
     if (submitFeedbackTimer !== null) {
       window.clearTimeout(submitFeedbackTimer);

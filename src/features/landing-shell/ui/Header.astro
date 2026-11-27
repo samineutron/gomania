@@ -208,6 +208,7 @@ import { NAV_ITEMS } from '../logic/landing-helpers';
    * 3) Conecta el botón de carrito con `eventBus` (`carrito:actualizado` y `carrito:abrirDrawer`).
    */
   import { eventBus } from '../../../shared/event-bus';
+  import { triggerSpringClass } from '../../../shared/motion-fx';
 
   const headerRoot = document.querySelector<HTMLElement>('[data-landing-header]');
 
@@ -295,6 +296,9 @@ import { NAV_ITEMS } from '../logic/landing-helpers';
       if (cartBtn) {
         const label = safeCount === 1 ? '1 producto' : `${safeCount} productos`;
         cartBtn.setAttribute('aria-label', `Abrir carrito de compras (${label})`);
+        if (safeCount > 0) {
+          triggerSpringClass(cartBtn, 'is-halo-pop', 650);
+        }
       }
     });
   }
@@ -403,6 +407,7 @@ import { NAV_ITEMS } from '../logic/landing-helpers';
 
   /* Botón de carrito con alto contraste sobre el header rosado */
   .gm-cart-btn {
+    position: relative;
     display: inline-flex;
     align-items: center;
     gap: var(--space-2);
@@ -415,7 +420,7 @@ import { NAV_ITEMS } from '../logic/landing-helpers';
     font-weight: 700;
     font-size: var(--text-sm);
     box-shadow: var(--shadow-sm);
-    transition: background-color var(--transition-fast), transform var(--transition-fast);
+    transition: background-color var(--transition-fast), border-color var(--transition-fast), box-shadow var(--transition-fast), transform 200ms cubic-bezier(0.34, 1.56, 0.64, 1);
   }
 
   .gm-cart-btn:hover {
@@ -423,6 +428,31 @@ import { NAV_ITEMS } from '../logic/landing-helpers';
     border-color: rgba(255, 255, 255, 0.8);
     box-shadow: 0 6px 16px rgba(11, 94, 136, 0.32);
     transform: translateY(-1px);
+  }
+
+  .gm-cart-btn:active {
+    transform: scale(0.95);
+  }
+
+  .gm-cart-btn.is-halo-pop::after {
+    content: '';
+    position: absolute;
+    inset: -3px;
+    border-radius: inherit;
+    border: 2px solid rgba(255, 255, 255, 0.85);
+    pointer-events: none;
+    animation: gm-cart-halo 620ms cubic-bezier(0.22, 1, 0.36, 1);
+  }
+
+  @keyframes gm-cart-halo {
+    0% {
+      opacity: 0.95;
+      transform: scale(1);
+    }
+    100% {
+      opacity: 0;
+      transform: scale(1.22, 1.38);
+    }
   }
 
   .gm-cart-btn__label {

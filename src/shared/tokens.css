@@ -305,6 +305,157 @@ a {
   position: relative;
 }
 
+/* --------------------------------------------------------------------------
+ * 5B. ANIMACIONES MODERNAS COMPARTIDAS (Scroll Reveal, Spring, Confeti, Toast)
+ * -------------------------------------------------------------------------- */
+html.gm-anim-ready [data-reveal] {
+  opacity: 0;
+  transform: translateY(20px);
+  transition:
+    opacity 540ms cubic-bezier(0.22, 1, 0.36, 1),
+    transform 540ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+html.gm-anim-ready [data-reveal].is-revealed {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+/* Rebote elástico suave (gomita / empaque / badge) */
+.gm-spring-pop {
+  animation: gm-spring-pop-kf 460ms cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+@keyframes gm-spring-pop-kf {
+  0% {
+    transform: scale(1, 1);
+  }
+  30% {
+    transform: scale(1.07, 0.93);
+  }
+  62% {
+    transform: scale(0.97, 1.04);
+  }
+  100% {
+    transform: scale(1, 1);
+  }
+}
+
+/* Capa de confeti desde el botón */
+.gm-confetti-layer {
+  position: fixed;
+  inset: 0;
+  z-index: 2200;
+  pointer-events: none;
+  overflow: hidden;
+}
+
+.gm-confetti-piece {
+  position: fixed;
+  box-shadow: 0 2px 6px rgba(24, 24, 27, 0.14);
+  will-change: transform, opacity;
+}
+
+/* Notificaciones flotantes modernas */
+.gm-candy-toast-stack {
+  position: fixed;
+  right: 16px;
+  bottom: 20px;
+  z-index: 1600;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 10px;
+  pointer-events: none;
+  max-width: calc(100vw - 32px);
+}
+
+@media (max-width: 1023px) {
+  .gm-candy-toast-stack {
+    bottom: 84px;
+    right: 12px;
+    max-width: calc(100vw - 24px);
+  }
+}
+
+.gm-candy-toast {
+  pointer-events: auto;
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 14px;
+  border-radius: 9999px;
+  background-color: rgba(255, 255, 255, 0.96);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  border: 1.5px solid color-mix(in srgb, var(--brand-pink) 30%, #E2E8F0);
+  box-shadow: 0 14px 32px rgba(24, 24, 27, 0.14);
+  color: var(--text-main);
+  font-size: 0.88rem;
+  font-weight: 700;
+  animation: gm-toast-enter 320ms cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+.gm-candy-toast--sky {
+  border-color: color-mix(in srgb, var(--brand-sky) 42%, #E2E8F0);
+}
+
+.gm-candy-toast--mint {
+  border-color: color-mix(in srgb, var(--state-success) 38%, #E2E8F0);
+}
+
+.gm-candy-toast.is-leaving {
+  opacity: 0;
+  transform: translateY(8px) scale(0.95);
+  transition: opacity 220ms ease, transform 220ms ease;
+}
+
+.gm-candy-toast__dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 9999px;
+  background: linear-gradient(135deg, var(--brand-pink), var(--brand-sky));
+  flex-shrink: 0;
+}
+
+.gm-candy-toast--mint .gm-candy-toast__dot {
+  background: var(--state-success);
+}
+
+.gm-candy-toast--sky .gm-candy-toast__dot {
+  background: var(--brand-sky);
+}
+
+.gm-candy-toast__btn {
+  min-height: 32px;
+  padding: 4px 12px;
+  border-radius: 9999px;
+  border: none;
+  background-color: var(--brand-pink);
+  color: #FFFFFF;
+  font-size: 0.78rem;
+  font-weight: 700;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: background-color 150ms ease, transform 150ms ease;
+}
+
+.gm-candy-toast__btn:hover {
+  background-color: var(--brand-sky-dark);
+  transform: translateY(-1px);
+}
+
+@keyframes gm-toast-enter {
+  0% {
+    opacity: 0;
+    transform: translateY(14px) scale(0.92);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
 @media (min-width: 768px) {
   :root {
     --container-pad: 1.5rem;
@@ -315,6 +466,12 @@ a {
 @media (prefers-reduced-motion: reduce) {
   html {
     scroll-behavior: auto;
+  }
+
+  html.gm-anim-ready [data-reveal] {
+    opacity: 1;
+    transform: none;
+    transition: none;
   }
 
   *,

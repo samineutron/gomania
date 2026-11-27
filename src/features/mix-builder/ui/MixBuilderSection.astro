@@ -34,7 +34,7 @@ import KraftBagPreview from './KraftBagPreview.astro';
 <div id="mix-builder-module" class="gm-mb-wrapper" aria-labelledby="mix-builder-heading">
   <div class="gm-mb-container">
     <!-- Encabezado de sección -->
-    <header class="gm-mb-header">
+    <header class="gm-mb-header" data-reveal>
       <span class="gm-mb-eyebrow">Armador de bolsas</span>
       <h2 id="mix-builder-heading" class="gm-mb-title">Arma tu bolsa a tu pinta</h2>
       <p class="gm-mb-subtitle">
@@ -92,7 +92,7 @@ import KraftBagPreview from './KraftBagPreview.astro';
     </div>
 
     <!-- Tarjeta principal del armador -->
-    <div class="gm-mb-card">
+    <div class="gm-mb-card" data-reveal>
       <!-- PASO 1: Selector de formato fijo (80 g a 3 kg) -->
       <section class="gm-mb-step" aria-labelledby="mb-step-tier-label">
         <div class="gm-mb-step-head">
@@ -1086,20 +1086,37 @@ import KraftBagPreview from './KraftBagPreview.astro';
   }
 
   #mix-builder-module .gm-mb-secondary-link {
-    min-height: 46px;
-    padding: 0.65rem 1.15rem;
-    border-radius: var(--radius-md, 0.75rem);
-    border: 1.5px solid var(--border-subtle, rgba(17, 24, 39, 0.18));
-    background-color: var(--bg-canvas);
-    color: var(--text-main);
+    position: relative;
+    overflow: hidden;
+    min-height: 54px;
+    padding: 0.85rem 1.75rem;
+    border-radius: var(--radius-pill, 9999px);
+    border: none;
+    background: linear-gradient(135deg, var(--brand-pink) 0%, #FF6B8E 56%, var(--brand-sky) 100%);
+    color: #FFFFFF;
     text-decoration: none;
+    font-family: var(--font-display, 'Fredoka', sans-serif);
     font-weight: 700;
-    font-size: 0.92rem;
+    font-size: 1.05rem;
+    letter-spacing: 0.01em;
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    gap: 0.45rem;
-    transition: border-color 0.18s ease, color 0.18s ease;
+    gap: 0.55rem;
+    box-shadow:
+      0 10px 24px color-mix(in srgb, var(--brand-pink) 30%, transparent),
+      inset 0 2px 0 rgba(255, 255, 255, 0.36);
+    transition: transform 220ms cubic-bezier(0.34, 1.56, 0.64, 1), box-shadow 200ms ease, filter 180ms ease;
+  }
+
+  #mix-builder-module .gm-mb-secondary-link::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(110deg, transparent 25%, rgba(255, 255, 255, 0.32) 50%, transparent 75%);
+    transform: translateX(-120%);
+    transition: transform 520ms ease;
+    pointer-events: none;
   }
 
   #mix-builder-module .gm-mb-secondary-link[hidden] {
@@ -1107,8 +1124,32 @@ import KraftBagPreview from './KraftBagPreview.astro';
   }
 
   #mix-builder-module .gm-mb-secondary-link:hover {
-    border-color: var(--brand-pink);
-    color: var(--brand-pink);
+    transform: translateY(-3px) scale(1.02);
+    filter: brightness(1.04);
+    box-shadow:
+      0 14px 28px color-mix(in srgb, var(--brand-pink) 36%, transparent),
+      inset 0 2px 0 rgba(255, 255, 255, 0.45);
+  }
+
+  #mix-builder-module .gm-mb-secondary-link:hover::after {
+    transform: translateX(120%);
+  }
+
+  #mix-builder-module .gm-mb-secondary-link:active {
+    transform: scale(0.97);
+  }
+
+  #mix-builder-module .gm-mb-secondary-link svg {
+    animation: gm-mb-arrow-bob 1.7s ease-in-out infinite;
+  }
+
+  @keyframes gm-mb-arrow-bob {
+    0%, 100% {
+      transform: translateY(0);
+    }
+    50% {
+      transform: translateY(4px);
+    }
   }
 
   #mix-builder-module .gm-mb-submit-btn {
@@ -1230,5 +1271,75 @@ import KraftBagPreview from './KraftBagPreview.astro';
     body {
       padding-bottom: 76px;
     }
+  }
+
+  /* Animaciones táctiles del armador (barra lista, chips pop-in y pulso CTA) */
+  #mix-builder-module .gm-kraft-progress-fill.is-complete {
+    position: relative;
+    overflow: hidden;
+  }
+
+  #mix-builder-module .gm-kraft-progress-fill.is-complete::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.55), transparent);
+    animation: gm-bar-shimmer 1.4s ease-in-out 2;
+  }
+
+  @keyframes gm-bar-shimmer {
+    0% {
+      transform: translateX(-100%);
+    }
+    100% {
+      transform: translateX(100%);
+    }
+  }
+
+  #mix-builder-module .gm-kraft-chip {
+    animation: gm-chip-pop 280ms cubic-bezier(0.34, 1.56, 0.64, 1) both;
+  }
+
+  @keyframes gm-chip-pop {
+    0% {
+      opacity: 0;
+      transform: scale(0.84) translateY(4px);
+    }
+    100% {
+      opacity: 1;
+      transform: scale(1) translateY(0);
+    }
+  }
+
+  #mix-builder-module .gm-mb-submit-btn:active:not(:disabled),
+  #mix-builder-module .gm-mb-tier-btn:active,
+  #mix-builder-module .gm-mb-profile-btn:active,
+  #mix-builder-module .gm-mb-mobile-cta:active:not(:disabled) {
+    transform: scale(0.97);
+  }
+
+  #mix-builder-module .gm-mb-submit-btn.is-ready-pulse,
+  #mix-builder-module .gm-mb-mobile-cta.is-ready-pulse {
+    animation: gm-cta-ready-pulse 950ms cubic-bezier(0.22, 1, 0.36, 1);
+  }
+
+  @keyframes gm-cta-ready-pulse {
+    0% {
+      box-shadow: 0 0 0 0 color-mix(in srgb, var(--brand-pink) 45%, transparent);
+      transform: scale(1);
+    }
+    40% {
+      box-shadow: 0 0 0 12px color-mix(in srgb, var(--brand-pink) 0%, transparent);
+      transform: scale(1.03);
+    }
+    100% {
+      box-shadow: 0 0 0 0 transparent;
+      transform: scale(1);
+    }
+  }
+
+  #mix-builder-module .gm-mb-mobile-bar.is-ready {
+    border-top-color: var(--brand-sky);
+    box-shadow: 0 -8px 24px color-mix(in srgb, var(--brand-sky) 18%, rgba(17, 24, 39, 0.1));
   }
 </style>

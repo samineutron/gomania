@@ -4,20 +4,19 @@
  * QUÉ HACE:
  * Portada principal (Hero) de GoManía SpA a pantalla completa (`100dvw` x
  * `100dvh`):
- * - Fondo preparado para reproducir un video en bucle a pantalla completa
- *   (`public/videos/hero-bg.mp4`) cubierto por una capa blanca translúcida
- *   (`--hero-overlay-color`) que suaviza el fondo y garantiza lectura perfecta.
- * - Si aún no has subido el video de fondo, el script oculta la etiqueta
- *   `<video>` sin mostrar errores y deja el fondo rosado suave de respaldo.
+ * - Fondo preparado con la imagen optimizada `public/images/hero/hero-bg.webp`
+ *   y soporte opcional de video en bucle (`public/videos/hero-bg.mp4`),
+ *   cubierto por una capa translúcida (`--hero-overlay-color`) que suaviza el
+ *   fondo y garantiza lectura perfecta.
+ * - Si no existe video, la imagen de fondo queda visible detrás del velo suave.
  * - Diseño mobile-first; en escritorio (`>= 1024px`) muestra titular + lema +
  *   CTA a la izquierda y marco multimedia a la derecha.
  *
  * QUÉ PUEDES EDITAR AQUÍ:
- * - VIDEO DE FONDO: guarda tu video en `public/videos/hero-bg.mp4` (o cambia
- *   la ruta en el bloque `=== VIDEO DE FONDO DEL HERO (100dvw x 100dvh) ===`).
- * - CAPA BLANCA TRANSLÚCIDA: ajusta `--hero-overlay-color` (opacidad del
- *   blanco, por defecto `0.72`) y `--hero-overlay-blur` (desenfoque suave,
- *   por defecto `2px`) al inicio del bloque `<style>`.
+ * - IMAGEN DE FONDO: ubicada en `public/images/hero/hero-bg.webp`.
+ * - VIDEO DE FONDO (opcional): guarda tu video en `public/videos/hero-bg.mp4`.
+ * - CAPA TRANSLÚCIDA: ajusta `--hero-overlay-color` y `--hero-overlay-blur`
+ *   al inicio del bloque `<style>`.
  * - SLOT DERECHO: opcionalmente agrega una foto/video destacado en el bloque
  *   `=== SLOT RESERVADO PARA FOTO O VIDEO DEL HERO ===`.
  *
@@ -42,6 +41,13 @@ import Pouch3DViewer from './Pouch3DViewer.astro';
           el fondo de respaldo con la capa translúcida blanca encima.
        ======================================================================== -->
   <div class="gm-hero__bg-media" aria-hidden="true">
+    <img
+      src="/images/hero/hero-bg.webp"
+      alt=""
+      class="gm-hero__bg-image"
+      fetchpriority="high"
+      decoding="async"
+    />
     <video
       class="gm-hero__bg-video"
       autoplay
@@ -49,6 +55,7 @@ import Pouch3DViewer from './Pouch3DViewer.astro';
       loop
       playsinline
       preload="metadata"
+      poster="/images/hero/hero-bg.webp"
       data-hero-bg-video
     >
       <source src="/videos/hero-bg.mp4" type="video/mp4" />
@@ -179,6 +186,24 @@ import Pouch3DViewer from './Pouch3DViewer.astro';
       </div>
     </div>
   </div>
+
+  <a href="#armador-mix" class="gm-hero__scroll-cue" aria-label="Ir al armador de bolsas">
+    <span>Arma tu mix abajo</span>
+    <svg
+      width="16"
+      height="16"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      stroke-width="2.4"
+      stroke-linecap="round"
+      stroke-linejoin="round"
+      aria-hidden="true"
+    >
+      <path d="M12 5v14" />
+      <path d="m19 12-7 7-7-7" />
+    </svg>
+  </a>
 </div>
 
 <script>
@@ -274,7 +299,10 @@ import Pouch3DViewer from './Pouch3DViewer.astro';
     pointer-events: none;
   }
 
+  .gm-hero__bg-image,
   .gm-hero__bg-video {
+    position: absolute;
+    inset: 0;
     width: 100%;
     height: 100%;
     object-fit: cover;
@@ -286,12 +314,17 @@ import Pouch3DViewer from './Pouch3DViewer.astro';
     display: none;
   }
 
-  /* CAPA 1: Velo translúcido blanco encima del video */
+  /* CAPA 1: Velo translúcido suave encima del fondo (más claro tras el texto y más vivo hacia la derecha) */
   .gm-hero__bg-overlay {
     position: absolute;
     inset: 0;
     z-index: 1;
-    background-color: var(--hero-overlay-color);
+    background: linear-gradient(
+      105deg,
+      rgba(255, 250, 252, 0.84) 0%,
+      rgba(255, 245, 249, 0.72) 48%,
+      rgba(255, 255, 255, 0.52) 100%
+    );
     backdrop-filter: blur(var(--hero-overlay-blur));
     -webkit-backdrop-filter: blur(var(--hero-overlay-blur));
     pointer-events: none;
@@ -531,6 +564,97 @@ import Pouch3DViewer from './Pouch3DViewer.astro';
     .gm-hero__media-frame {
       height: 520px;
       min-height: 520px;
+    }
+  }
+
+  /* Animaciones modernas del Hero (entrada escalonada + indicador flotante) */
+  .gm-hero__eyebrow {
+    animation: gm-hero-rise 480ms cubic-bezier(0.22, 1, 0.36, 1) 40ms both;
+  }
+
+  .gm-hero__title {
+    animation: gm-hero-rise 520ms cubic-bezier(0.22, 1, 0.36, 1) 110ms both;
+  }
+
+  .gm-hero__subtitle {
+    animation: gm-hero-rise 520ms cubic-bezier(0.22, 1, 0.36, 1) 180ms both;
+  }
+
+  .gm-hero__actions {
+    animation: gm-hero-rise 520ms cubic-bezier(0.22, 1, 0.36, 1) 250ms both;
+  }
+
+  .gm-hero__highlights {
+    animation: gm-hero-rise 520ms cubic-bezier(0.22, 1, 0.36, 1) 320ms both;
+  }
+
+  .gm-hero__media-wrap {
+    animation: gm-hero-rise 600ms cubic-bezier(0.22, 1, 0.36, 1) 180ms both;
+  }
+
+  @keyframes gm-hero-rise {
+    0% {
+      opacity: 0;
+      transform: translateY(18px);
+    }
+    100% {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  .gm-hero__cta:active,
+  .gm-hero__secondary:active {
+    transform: scale(0.97);
+  }
+
+  .gm-hero__pill {
+    transition: transform 220ms cubic-bezier(0.34, 1.56, 0.64, 1), box-shadow 180ms ease;
+  }
+
+  .gm-hero__pill:hover {
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-sm);
+  }
+
+  .gm-hero__scroll-cue {
+    display: none;
+  }
+
+  @media (min-width: 1024px) {
+    .gm-hero__scroll-cue {
+      position: absolute;
+      left: 50%;
+      bottom: 18px;
+      transform: translateX(-50%);
+      z-index: 3;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 6px 14px;
+      border-radius: var(--radius-pill);
+      background-color: rgba(255, 255, 255, 0.88);
+      border: 1px solid rgba(24, 24, 27, 0.08);
+      color: var(--text-main);
+      font-size: 0.78rem;
+      font-weight: 700;
+      box-shadow: var(--shadow-sm);
+      animation: gm-scroll-cue-float 2.2s ease-in-out infinite;
+      transition: background-color var(--transition-fast), color var(--transition-fast);
+    }
+
+    .gm-hero__scroll-cue:hover {
+      background-color: var(--brand-pink);
+      color: #FFFFFF;
+    }
+  }
+
+  @keyframes gm-scroll-cue-float {
+    0%, 100% {
+      transform: translate(-50%, 0);
+    }
+    50% {
+      transform: translate(-50%, 5px);
     }
   }
 </style>

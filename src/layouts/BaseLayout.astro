@@ -78,5 +78,10 @@ const ogImageAbsolute = new URL(BRAND_CONFIG.ogImageUrl, BRAND_CONFIG.siteUrl).t
     <a class="sr-only" href="#contenido-principal">Saltar al contenido principal</a>
 
     <slot />
+
+    <script>
+      import { initScrollReveal } from '../shared/motion-fx';
+      initScrollReveal();
+    </script>
   </body>
 </html>
