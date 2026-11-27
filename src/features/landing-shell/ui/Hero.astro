@@ -476,11 +476,14 @@ import Pouch3DViewer from './Pouch3DViewer.astro';
   /* Marco contenedor del visor 3D del envase GoManía */
   .gm-hero__media-wrap {
     width: 100%;
+    padding-inline: 40px;
   }
 
   .gm-hero__media-frame {
     position: relative;
     width: 100%;
+    max-width: 450px;
+    margin-inline: auto;
     height: 440px;
     min-height: 440px;
     border-radius: var(--radius-xl);
@@ -559,6 +562,10 @@ import Pouch3DViewer from './Pouch3DViewer.astro';
     .gm-hero__grid {
       grid-template-columns: 1.1fr 0.9fr;
       gap: var(--space-12);
+    }
+
+    .gm-hero__media-wrap {
+      padding-inline: 0;
     }
 
     .gm-hero__media-frame {
