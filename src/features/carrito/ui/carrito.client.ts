@@ -75,6 +75,7 @@ interface CartDomRefs {
   itemsList: HTMLElement;
   subtotalValue: HTMLElement;
   totalBagsLabel: HTMLElement;
+  continueBtn: HTMLButtonElement;
   checkoutBtn: HTMLButtonElement;
   checkoutHint: HTMLElement;
 }
@@ -401,6 +402,7 @@ function queryCartDom(): CartDomRefs | null {
   const itemsList = root.querySelector<HTMLElement>('[data-cart-items]');
   const subtotalValue = root.querySelector<HTMLElement>('[data-cart-subtotal]');
   const totalBagsLabel = root.querySelector<HTMLElement>('[data-cart-bags-label]');
+  const continueBtn = root.querySelector<HTMLButtonElement>('[data-cart-continue]');
   const checkoutBtn = root.querySelector<HTMLButtonElement>('[data-cart-checkout]');
   const checkoutHint = root.querySelector<HTMLElement>('[data-cart-checkout-hint]');
 
@@ -421,6 +423,7 @@ function queryCartDom(): CartDomRefs | null {
     !itemsList ||
     !subtotalValue ||
     !totalBagsLabel ||
+    !continueBtn ||
     !checkoutBtn ||
     !checkoutHint
   ) {
@@ -445,6 +448,7 @@ function queryCartDom(): CartDomRefs | null {
     itemsList,
     subtotalValue,
     totalBagsLabel,
+    continueBtn,
     checkoutBtn,
     checkoutHint,
   };
@@ -622,7 +626,7 @@ function mountCarritoDrawer(dom: CartDomRefs): void {
       // Estado 5 (Permisos): Bloqueo si el carrito está vacío
       dom.checkoutBtn.disabled = true;
       dom.checkoutBtn.setAttribute('aria-disabled', 'true');
-      dom.checkoutHint.textContent = 'Agrega al menos una bolsa para continuar al pedido.';
+      dom.checkoutHint.textContent = 'Agrega al menos una bolsa para finalizar tu compra.';
       dom.checkoutHint.hidden = false;
       return;
     }
@@ -663,7 +667,7 @@ function mountCarritoDrawer(dom: CartDomRefs): void {
       dom.checkoutBtn.disabled = true;
       dom.checkoutBtn.setAttribute('aria-disabled', 'true');
       dom.checkoutHint.textContent =
-        'Ajusta o edita las bolsas marcadas antes de continuar al pedido.';
+        'Ajusta o edita las bolsas marcadas antes de finalizar tu compra.';
       dom.checkoutHint.hidden = false;
     } else {
       dom.checkoutBtn.disabled = false;
@@ -771,7 +775,13 @@ function mountCarritoDrawer(dom: CartDomRefs): void {
     }
   });
 
-  // Botón principal "Continuar al pedido" (solo activo en Estado Ideal)
+  // Botón secundario "Seguir armando": cierra el carrito y lleva al armador
+  dom.continueBtn.addEventListener('click', () => {
+    setDrawerOpen(false);
+    scrollToSection(['armador-mix', 'catalogo']);
+  });
+
+  // Botón principal "Finalizar compra": abre el modal flotante de WhatsApp
   dom.checkoutBtn.addEventListener('click', () => {
     const state = carritoStore.getState();
     if (state.totalItems === 0 || isLoadingCatalog || catalogLoadFailed || !validationReport.isValid) {
@@ -779,13 +789,12 @@ function mountCarritoDrawer(dom: CartDomRefs): void {
     }
 
     setDrawerOpen(false);
-    // Notificación DOM desacoplada para que `checkout-whatsapp` active su flujo
+    // Notificación DOM desacoplada para que `checkout-whatsapp` abra su modal
     window.dispatchEvent(
       new CustomEvent('gomania:irACheckout', {
         detail: state,
       })
     );
-    scrollToSection(['slot-checkout', 'checkout', 'contacto']);
   });
 
   // ==========================================================================

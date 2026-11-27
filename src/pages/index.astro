@@ -26,7 +26,7 @@ import Footer from '../features/landing-shell/ui/Footer.astro';
 import CatalogoSection from '../features/catalogo/ui/CatalogoSection.astro';
 import MixBuilderSection from '../features/mix-builder/ui/MixBuilderSection.astro';
 import CarritoDrawer from '../features/carrito/ui/CarritoDrawer.astro';
-// [PASO 7] Importar aquí CheckoutModal desde `checkout-whatsapp`
+import CheckoutModal from '../features/checkout-whatsapp/ui/CheckoutModal.astro';
 ---
 
 <BaseLayout>
@@ -92,7 +92,7 @@ import CarritoDrawer from '../features/carrito/ui/CarritoDrawer.astro';
        SLOT 9: MODAL CHECKOUT WHATSAPP (Módulo `checkout-whatsapp` — Paso 7)
        ======================================================================== -->
   <div id="slot-checkout" class="gm-module-slot" data-module="checkout-whatsapp">
-    <!-- Montar <CheckoutModal /> aquí en el Paso 7 -->
+    <CheckoutModal />
   </div>
 </BaseLayout>
 
