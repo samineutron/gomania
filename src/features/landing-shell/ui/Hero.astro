@@ -27,6 +27,7 @@
  * ============================================================================
  */
 import { BRAND_CONFIG, BUSINESS_RULES } from '../../../shared/config';
+import Pouch3DViewer from './Pouch3DViewer.astro';
 ---
 
 <div class="gm-hero" data-landing-hero>
@@ -113,14 +114,17 @@ import { BRAND_CONFIG, BUSINESS_RULES } from '../../../shared/config';
       </ul>
     </div>
 
-    <!-- COLUMNA DERECHA (ABAJO EN MÓVIL): SLOT RESERVADO PARA FOTO O VIDEO -->
+    <!-- COLUMNA DERECHA (ABAJO EN MÓVIL): VISOR 3D INTERACTIVO DEL EMPAQUE -->
     <div class="gm-hero__media-wrap">
       <div class="gm-hero__media-frame" data-hero-media-frame>
-        <!-- Aquí empieza el modelo 3d envase gomanía -->
-
+        <!-- Aquí empieza el modelo 3d envase gomanía
+             Props configurables:
+             - showControls={false} : oculta la barra inferior de botones
+             - showHint={true}      : muestra/oculta la pista superior "Arrastra para girar 360°..."
+             - transparent={true}   : fondo transparente + oculta visualmente la card contenedora -->
+        <Pouch3DViewer showControls={false} showHint={true} transparent={false}>
           <div slot="fallback" class="gm-hero__fallback" data-hero-fallback>
-            <div class="gm-hero__fallback" data-hero-fallback>
-            <div class="gm-hero__fallback-badge">Espacio listo para foto o video</div>
+            <div class="gm-hero__fallback-badge">Vista previa del empaque</div>
 
             <!-- Ilustración decorativa a color estilo GoManía (nunca B/N) -->
             <svg
@@ -170,8 +174,8 @@ import { BRAND_CONFIG, BUSINESS_RULES } from '../../../shared/config';
               {BRAND_CONFIG.shortName} · {BRAND_CONFIG.tagline}
             </p>
           </div>
+        </Pouch3DViewer>
         <!-- Aquí termina el modelo 3d envase gomanía -->
-        </div>
       </div>
     </div>
   </div>
@@ -421,7 +425,7 @@ import { BRAND_CONFIG, BUSINESS_RULES } from '../../../shared/config';
     font-weight: 700;
   }
 
-  /* Marco reservado para foto o video */
+  /* Marco contenedor del visor 3D del envase GoManía */
   .gm-hero__media-wrap {
     width: 100%;
   }
@@ -429,16 +433,28 @@ import { BRAND_CONFIG, BUSINESS_RULES } from '../../../shared/config';
   .gm-hero__media-frame {
     position: relative;
     width: 100%;
-    min-height: 280px;
+    height: 440px;
+    min-height: 440px;
     border-radius: var(--radius-xl);
-    background-color: rgba(255, 255, 255, 0.92);
+    background-color: #ffffff;
     color: var(--text-main);
     border: var(--border-width) solid var(--border-color);
     box-shadow: var(--shadow-lg);
     overflow: hidden;
-    display: grid;
-    place-items: center;
-    padding: var(--space-5);
+  }
+
+  /* Cuando Pouch3DViewer tiene `transparent={true}`, oculta visualmente la card
+     manteniendo el marco limpio por si se activa el fallback sin WebGL */
+  :global(.gm-hero__media-frame[data-hero-media-frame]:has([data-pouch3d-transparent="true"])) {
+    background-color: transparent;
+    border-color: transparent;
+    box-shadow: none;
+  }
+
+  :global(.gm-hero__media-frame[data-hero-media-frame]:has([data-pouch3d-fallback]:not([hidden]))) {
+    background-color: rgba(255, 255, 255, 0.92);
+    border: var(--border-width) solid var(--border-color);
+    box-shadow: var(--shadow-lg);
   }
 
   .gm-hero__media-asset {
@@ -498,7 +514,8 @@ import { BRAND_CONFIG, BUSINESS_RULES } from '../../../shared/config';
     }
 
     .gm-hero__media-frame {
-      min-height: 380px;
+      height: 520px;
+      min-height: 520px;
     }
   }
 </style>

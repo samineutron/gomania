@@ -1,0 +1,492 @@
+---
+/**
+ * ============================================================================
+ * QUÉ HACE:
+ * Componente Astro modular para el visor 3D interactivo del paquete Doypack
+ * GoManía (80 g) con malvaviscos pastel animados, rotación 360°, zoom y
+ * vistas rápidas (Frente, Dorso, Base, Restablecer).
+ *
+ * QUÉ PUEDES EDITAR AQUÍ:
+ * - Estilos de la barra flotante de control y pista de arrastre en `<style>`.
+ * - El slot `fallback` se muestra automáticamente si WebGL no está disponible.
+ *
+ * CON QUÉ MÓDULO CONECTA:
+ * - Inicializa `initPouch3DViewer` desde `../logic/pouch-3d/pouch-viewer.client`.
+ * - Diseñado para montarse dentro de `Hero.astro` (`.gm-hero__media-frame`).
+ * ============================================================================
+ */
+interface Props {
+  ariaLabel?: string;
+  /** Muestra u oculta la barra flotante inferior de botones y velocidad. */
+  showControls?: boolean;
+  /** Muestra u oculta la pista discreta superior ("Arrastra para girar 360°..."). */
+  showHint?: boolean;
+  /** Activa fondo transparente en el canvas WebGL y en el contenedor del visor. */
+  transparent?: boolean;
+}
+
+const {
+  ariaLabel = 'Visor 3D interactivo del paquete GOMANÍA',
+  showControls = true,
+  showHint = true,
+  transparent = false,
+} = Astro.props;
+---
+
+<div
+  class:list={['gm-pouch-3d', { 'gm-pouch-3d--transparent': transparent }]}
+  data-pouch3d-viewer
+  data-pouch3d-transparent={String(transparent)}
+>
+  <!-- Contenedor WebGL (blanco de estudio o transparente según prop `transparent`) -->
+  <div
+    class="gm-pouch-3d__canvas"
+    data-pouch3d-canvas
+    role="img"
+    aria-label={ariaLabel}
+  ></div>
+
+  <!-- Fallback automático si WebGL no está disponible -->
+  <div class="gm-pouch-3d__fallback" data-pouch3d-fallback hidden>
+    <slot name="fallback" />
+  </div>
+
+  <!-- Indicador de carga inicial -->
+  <div class="gm-pouch-3d__loader" data-pouch3d-loader aria-live="polite">
+    <div class="gm-pouch-3d__spinner" aria-hidden="true"></div>
+    <p class="gm-pouch-3d__loader-text">Generando empaque 3D GOMANÍA...</p>
+  </div>
+
+  <!-- Pista discreta superior -->
+  {
+    showHint && (
+      <div class="gm-pouch-3d__hint" data-pouch3d-hint aria-hidden="true">
+        Arrastra para girar 360° · Rueda o pellizco para zoom
+      </div>
+    )
+  }
+
+  <!-- Barra de control flotante minimalista -->
+  {
+    showControls && (
+      <div class="gm-pouch-3d__toolbar-wrap" data-pouch3d-toolbar>
+        <div class="gm-pouch-3d__toolbar" role="toolbar" aria-label="Controles del visor 3D">
+          <!-- Auto-rotar -->
+          <button
+            type="button"
+            class="gm-pouch-3d__btn is-active"
+            data-pouch3d-autorotate
+            aria-pressed="true"
+            title="Activar o desactivar rotación automática"
+          >
+            <svg
+              class="gm-pouch-3d__icon"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2.2"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              aria-hidden="true"
+            >
+              <path d="M21 12a9 9 0 1 1-9-9c2.52 0 4.93 1 6.74 2.74L21 8" />
+              <path d="M21 3v5h-5" />
+            </svg>
+            <span>Auto-rotar</span>
+          </button>
+
+          <!-- Pausar / Reanudar colores pastel -->
+          <button
+            type="button"
+            class="gm-pouch-3d__btn"
+            data-pouch3d-colors
+            aria-pressed="true"
+            title="Pausar o reanudar cambio de colores pastel en malvaviscos"
+          >
+            <svg
+              class="gm-pouch-3d__icon"
+              data-pouch3d-icon-pause
+              viewBox="0 0 24 24"
+              fill="currentColor"
+              aria-hidden="true"
+            >
+              <rect x="6" y="4" width="4" height="16" rx="1.2" />
+              <rect x="14" y="4" width="4" height="16" rx="1.2" />
+            </svg>
+            <svg
+              class="gm-pouch-3d__icon is-hidden"
+              data-pouch3d-icon-play
+              viewBox="0 0 24 24"
+              fill="currentColor"
+              aria-hidden="true"
+            >
+              <path d="M7 4.8v14.4c0 .8.9 1.3 1.6.9l11.2-7.2c.6-.4.6-1.4 0-1.8L8.6 3.9c-.7-.4-1.6.1-1.6.9z" />
+            </svg>
+            <span data-pouch3d-label-colors>Pausar</span>
+          </button>
+
+          <!-- Velocidad de colores -->
+          <label class="gm-pouch-3d__speed">
+            <span class="gm-pouch-3d__speed-label">Velocidad</span>
+            <input
+              type="range"
+              min="0.2"
+              max="3.0"
+              step="0.1"
+              value="1.0"
+              class="gm-pouch-3d__slider"
+              data-pouch3d-speed
+              aria-label="Velocidad de cambio de colores pastel"
+            />
+          </label>
+
+          <span class="gm-pouch-3d__divider" aria-hidden="true"></span>
+
+          <!-- Vistas rápidas de cámara -->
+          <div class="gm-pouch-3d__views">
+            <button
+              type="button"
+              class="gm-pouch-3d__view-btn"
+              data-pouch3d-view="front"
+              title="Ver frente del paquete"
+            >
+              Frente
+            </button>
+            <button
+              type="button"
+              class="gm-pouch-3d__view-btn"
+              data-pouch3d-view="back"
+              title="Ver parte trasera"
+            >
+              Dorso
+            </button>
+            <button
+              type="button"
+              class="gm-pouch-3d__view-btn"
+              data-pouch3d-view="bottom"
+              title="Ver fuelle inferior celeste"
+            >
+              Base
+            </button>
+            <button
+              type="button"
+              class="gm-pouch-3d__view-btn gm-pouch-3d__view-btn--icon"
+              data-pouch3d-view="reset"
+              title="Restablecer vista inicial"
+              aria-label="Restablecer vista"
+            >
+              <svg
+                class="gm-pouch-3d__icon"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2.2"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                aria-hidden="true"
+              >
+                <path d="M3 12a9 9 0 1 0 3-6.7L3 8" />
+                <path d="M3 3v5h5" />
+              </svg>
+            </button>
+          </div>
+        </div>
+      </div>
+    )
+  }
+</div>
+
+<script>
+  import { initPouch3DViewer } from '../logic/pouch-3d/pouch-viewer.client';
+
+  const viewers = document.querySelectorAll<HTMLElement>('[data-pouch3d-viewer]');
+  viewers.forEach((viewerEl) => {
+    initPouch3DViewer(viewerEl).catch((err) => {
+      console.error('Error al inicializar el visor 3D GOMANÍA:', err);
+      const fallbackEl = viewerEl.querySelector<HTMLElement>('[data-pouch3d-fallback]');
+      const loaderEl = viewerEl.querySelector<HTMLElement>('[data-pouch3d-loader]');
+      const toolbarEl = viewerEl.querySelector<HTMLElement>('[data-pouch3d-toolbar]');
+      const hintEl = viewerEl.querySelector<HTMLElement>('[data-pouch3d-hint]');
+      const canvasEl = viewerEl.querySelector<HTMLElement>('[data-pouch3d-canvas]');
+      if (loaderEl) loaderEl.hidden = true;
+      if (toolbarEl) toolbarEl.hidden = true;
+      if (hintEl) hintEl.hidden = true;
+      if (canvasEl) canvasEl.hidden = true;
+      if (fallbackEl) fallbackEl.hidden = false;
+    });
+  });
+</script>
+
+<style>
+  .gm-pouch-3d {
+    position: relative;
+    width: 100%;
+    height: 100%;
+    min-height: inherit;
+    background-color: #ffffff;
+    overflow: hidden;
+    user-select: none;
+    -webkit-user-select: none;
+    font-family: 'Inter', var(--font-body);
+  }
+
+  .gm-pouch-3d__canvas {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    background-color: #ffffff;
+    cursor: grab;
+    touch-action: none;
+  }
+
+  .gm-pouch-3d--transparent,
+  .gm-pouch-3d--transparent .gm-pouch-3d__canvas,
+  .gm-pouch-3d--transparent .gm-pouch-3d__loader {
+    background-color: transparent;
+  }
+
+  .gm-pouch-3d__canvas:active {
+    cursor: grabbing;
+  }
+
+  .gm-pouch-3d__canvas[hidden],
+  .gm-pouch-3d__loader[hidden],
+  .gm-pouch-3d__hint[hidden],
+  .gm-pouch-3d__toolbar-wrap[hidden],
+  .gm-pouch-3d__fallback[hidden] {
+    display: none;
+  }
+
+  .gm-pouch-3d__fallback {
+    width: 100%;
+    height: 100%;
+    display: grid;
+    place-items: center;
+    padding: var(--space-5);
+  }
+
+  /* Indicador de carga inicial */
+  .gm-pouch-3d__loader {
+    position: absolute;
+    inset: 0;
+    z-index: 30;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    background-color: #ffffff;
+    transition: opacity 0.45s ease;
+  }
+
+  .gm-pouch-3d__loader.is-done {
+    opacity: 0;
+    pointer-events: none;
+  }
+
+  .gm-pouch-3d__spinner {
+    width: 34px;
+    height: 34px;
+    border-radius: 9999px;
+    border: 3px solid #fce7f3;
+    border-top-color: #e9557d;
+    margin-bottom: 10px;
+    animation: gmPouchSpin 0.85s linear infinite;
+  }
+
+  @keyframes gmPouchSpin {
+    to {
+      transform: rotate(360deg);
+    }
+  }
+
+  .gm-pouch-3d__loader-text {
+    font-size: 12px;
+    font-weight: 500;
+    letter-spacing: 0.02em;
+    color: #94a3b8;
+  }
+
+  /* Pista discreta superior */
+  .gm-pouch-3d__hint {
+    position: absolute;
+    top: 12px;
+    left: 50%;
+    transform: translateX(-50%);
+    z-index: 10;
+    pointer-events: none;
+    padding: 5px 12px;
+    border-radius: 9999px;
+    background-color: rgba(255, 255, 255, 0.88);
+    backdrop-filter: blur(6px);
+    -webkit-backdrop-filter: blur(6px);
+    border: 1px solid rgba(226, 232, 240, 0.8);
+    font-size: 11px;
+    font-weight: 500;
+    color: #64748b;
+    white-space: nowrap;
+    box-shadow: 0 1px 4px rgba(15, 23, 42, 0.05);
+    transition: opacity 0.55s ease;
+  }
+
+  .gm-pouch-3d__hint.is-hidden {
+    opacity: 0;
+  }
+
+  /* Barra de control flotante minimalista */
+  .gm-pouch-3d__toolbar-wrap {
+    position: absolute;
+    bottom: 12px;
+    left: 50%;
+    transform: translateX(-50%);
+    z-index: 20;
+    width: max-content;
+    max-width: calc(100% - 20px);
+  }
+
+  .gm-pouch-3d__toolbar {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    padding: 6px 10px;
+    border-radius: 20px;
+    background-color: rgba(255, 255, 255, 0.92);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    border: 1px solid rgba(226, 232, 240, 0.85);
+    box-shadow: 0 8px 26px rgba(15, 23, 42, 0.08);
+  }
+
+  .gm-pouch-3d__btn,
+  .gm-pouch-3d__view-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 5px;
+    min-height: 28px;
+    padding: 4px 10px;
+    border-radius: 9999px;
+    font-size: 11px;
+    font-weight: 600;
+    color: #475569;
+    background-color: #f8fafc;
+    border: 1px solid rgba(226, 232, 240, 0.85);
+    transition: background-color 0.16s ease, color 0.16s ease, transform 0.12s ease;
+    cursor: pointer;
+    line-height: 1;
+  }
+
+  .gm-pouch-3d__btn:hover,
+  .gm-pouch-3d__view-btn:hover {
+    background-color: #f1f5f9;
+    color: #1e293b;
+  }
+
+  .gm-pouch-3d__btn:active,
+  .gm-pouch-3d__view-btn:active {
+    transform: scale(0.95);
+  }
+
+  .gm-pouch-3d__btn.is-active {
+    background-color: #fdf2f8;
+    color: #d93d6b;
+    border-color: rgba(244, 114, 182, 0.45);
+  }
+
+  .gm-pouch-3d__btn.is-active:hover {
+    background-color: #fce7f3;
+  }
+
+  .gm-pouch-3d__view-btn--icon {
+    padding: 4px 7px;
+  }
+
+  .gm-pouch-3d__icon {
+    width: 13px;
+    height: 13px;
+    flex-shrink: 0;
+  }
+
+  .gm-pouch-3d__icon.is-hidden {
+    display: none;
+  }
+
+  .gm-pouch-3d__speed {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 2px 4px;
+    font-size: 11px;
+    font-weight: 500;
+    color: #64748b;
+  }
+
+  .gm-pouch-3d__speed-label {
+    white-space: nowrap;
+  }
+
+  .gm-pouch-3d__slider {
+    -webkit-appearance: none;
+    appearance: none;
+    width: 64px;
+    height: 5px;
+    border-radius: 9999px;
+    background: #f5d0de;
+    outline: none;
+    cursor: pointer;
+  }
+
+  .gm-pouch-3d__slider::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    appearance: none;
+    width: 13px;
+    height: 13px;
+    border-radius: 9999px;
+    background: #e9557d;
+    border: 2px solid #ffffff;
+    box-shadow: 0 1px 4px rgba(0, 0, 0, 0.22);
+    cursor: pointer;
+    transition: transform 0.15s ease;
+  }
+
+  .gm-pouch-3d__slider::-webkit-slider-thumb:hover {
+    transform: scale(1.15);
+  }
+
+  .gm-pouch-3d__slider::-moz-range-thumb {
+    width: 13px;
+    height: 13px;
+    border-radius: 9999px;
+    background: #e9557d;
+    border: 2px solid #ffffff;
+    box-shadow: 0 1px 4px rgba(0, 0, 0, 0.22);
+    cursor: pointer;
+  }
+
+  .gm-pouch-3d__divider {
+    display: none;
+    width: 1px;
+    height: 16px;
+    background-color: #e2e8f0;
+  }
+
+  .gm-pouch-3d__views {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+  }
+
+  @media (min-width: 640px) {
+    .gm-pouch-3d__toolbar {
+      border-radius: 9999px;
+      padding: 6px 12px;
+      gap: 8px;
+    }
+
+    .gm-pouch-3d__divider {
+      display: block;
+    }
+  }
+</style>
